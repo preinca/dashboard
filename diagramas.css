@@ -1,0 +1,55 @@
+/* Galería y visor de diagramas; estilos aislados para no modificar las demás vistas. */
+.diagramas-view{width:100%}
+.diagramas-intro{display:flex;justify-content:space-between;gap:20px;align-items:flex-start;margin:0 0 20px}
+.diagramas-intro h3{font-size:19px;font-weight:700;line-height:1.25;letter-spacing:-.02em;margin:0 0 6px;color:var(--ink)}
+.diagramas-intro p{color:var(--ink-3);font-size:12.5px;margin:0}
+.diagramas-counter{font-size:12px;color:var(--ink-3);padding:8px 12px;border:1px solid var(--line);border-radius:100px;background:var(--panel);white-space:nowrap}
+.diagramas-gallery{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:18px;align-items:stretch}
+.diagramas-card{min-width:0;padding:0 0 15px;border:1px solid var(--line);background:var(--panel);border-radius:var(--r);overflow:hidden;text-align:left;display:flex;flex-direction:column;transition:border-color .16s,box-shadow .16s,transform .16s;box-shadow:var(--sh-1)}
+.diagramas-card:hover{border-color:#AFC5E2;box-shadow:var(--sh-2);transform:translateY(-2px)}
+.diagramas-card:focus-visible{outline:3px solid var(--focus);outline-offset:3px}
+.diagramas-card-preview{position:relative;width:100%;aspect-ratio:4/3;background:#F7F9FC;display:flex;justify-content:center;align-items:center;border-bottom:1px solid var(--line-2);overflow:hidden}
+.diagramas-card-preview img{display:block;width:100%;height:100%;object-fit:contain}
+.diagramas-zoom-indicator{position:absolute;right:10px;top:10px;font-size:19px;line-height:1;background:rgba(22,32,42,.77);color:#fff;width:30px;height:30px;display:flex;justify-content:center;align-items:center;border-radius:8px;opacity:0;transition:opacity .16s}
+.diagramas-card:hover .diagramas-zoom-indicator,.diagramas-card:focus-visible .diagramas-zoom-indicator{opacity:1}
+.diagramas-card-caption{display:block;font-size:13px;font-weight:700;line-height:1.4;color:var(--ink);padding:13px 13px 4px;min-height:49px}
+.diagramas-card-hint{display:block;font-size:11px;color:var(--ink-3);padding:0 13px;margin-top:auto}
+.diagramas-modal[hidden]{display:none!important}
+.diagramas-modal{position:fixed;inset:0;z-index:2147483645;background:rgba(13,22,33,.78);backdrop-filter:blur(5px);padding:18px;display:flex;justify-content:center;align-items:center}
+.diagramas-modal-dialog{height:min(92vh,1100px);width:min(1600px,98vw);display:flex;flex-direction:column;background:var(--panel);border:1px solid #D9E2EC;border-radius:15px;overflow:hidden;box-shadow:0 24px 80px rgba(0,0,0,.28)}
+.diagramas-modal-bar{min-height:62px;padding:10px 16px;display:flex;align-items:center;justify-content:space-between;gap:18px;border-bottom:1px solid var(--line);background:#fff}
+.diagramas-modal-heading{min-width:0;display:flex;flex-direction:column;line-height:1.3;gap:4px}
+.diagramas-modal-heading strong{font-size:14px;font-weight:700;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.diagramas-modal-heading span{font-size:11px;color:var(--ink-3)}
+.diagramas-modal-actions{flex-shrink:0;display:flex;align-items:center;gap:10px}
+.diagramas-modal-external{padding:9px 12px;background:#ECF3FC;border:1px solid #CFE0F5;border-radius:8px;text-decoration:none;color:#224E82;font-size:12px;font-weight:700}
+.diagramas-modal-external:hover{background:#DBEAFB}
+.diagramas-modal-close{width:36px;height:36px;display:grid;place-items:center;font-size:17px;background:var(--panel-2);border:1px solid var(--line);border-radius:8px;color:var(--ink);flex-shrink:0}
+.diagramas-modal-close:hover{background:var(--canvas-2)}
+.diagramas-modal-body{flex:1;min-height:0;display:flex;background:#E9EDF2}
+.diagramas-modal-body iframe{display:block;border:none;width:100%;height:100%;background:#fff}
+body.diagramas-modal-open{overflow:hidden}
+@media(max-width:1180px){.diagramas-gallery{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:730px){.diagramas-gallery{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.diagramas-intro{flex-direction:column;gap:11px}.diagramas-modal{padding:7px}.diagramas-modal-dialog{width:100%;height:96vh;border-radius:11px}.diagramas-modal-bar{padding:9px 10px;gap:8px}.diagramas-modal-heading strong{font-size:12.5px}.diagramas-modal-external{font-size:11px;padding:8px 9px}}
+@media(max-width:430px){.diagramas-gallery{grid-template-columns:1fr}.diagramas-card-preview{aspect-ratio:16/9}.diagramas-modal-heading span{display:none}.diagramas-modal-external{max-width:125px;line-height:1.25}}
+
+/* Visor de imágenes grandes: legible también si el navegador no muestra PDF embebido. */
+.diagramas-modal-body{position:relative;display:block;overflow:auto;background:#DDE5ED;overscroll-behavior:contain}
+.diagramas-modal-stage{display:flex;justify-content:center;align-items:center;min-width:100%;min-height:100%;padding:16px;box-sizing:border-box}
+.diagramas-modal-stage img{display:block;flex:0 0 auto;height:auto;max-width:none;max-height:none;width:auto;background:#fff;box-shadow:0 4px 30px rgba(0,0,0,.16);border:1px solid #C6D0DA}
+.diagramas-modal-zoom{display:flex;align-items:center;gap:0;background:#F2F5F9;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.diagramas-modal-zoom button{min-width:33px;height:34px;background:transparent;border:0;font-size:18px;font-weight:700;line-height:1;color:var(--ink-2)}
+.diagramas-modal-zoom button:hover{background:#DCE7F4;color:#244F82}
+.diagramas-modal-zoom button:disabled{color:#A0A9B4;cursor:default}
+.diagramas-modal-zoom span{min-width:49px;text-align:center;font-weight:600;font-size:11px;color:var(--ink-2);font-variant-numeric:tabular-nums}
+.diagramas-modal-zoom button + button{border-left:1px solid var(--line)}
+@media(max-width:730px){
+  .diagramas-modal-bar{flex-wrap:wrap;align-content:center;gap:7px}
+  .diagramas-modal-heading{flex-basis:100%}
+  .diagramas-modal-heading strong{font-size:13px}
+  .diagramas-modal-heading span{display:none}
+  .diagramas-modal-actions{flex:1;justify-content:space-between;gap:5px}
+  .diagramas-modal-stage{padding:8px}
+}
+/* El control flotante de sincronización no debe tapar el visor ampliado. */
+body.diagramas-modal-open #drive-refresh-floating{visibility:hidden!important;pointer-events:none!important}
