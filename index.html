@@ -59,6 +59,10 @@
 <button class="tab" role="tab" id="t-ptar" aria-controls="v-ptar" aria-selected="false" data-tab="ptar" style="--k:var(--ptar)">
         <span class="dot"></span>PTAR<span class="st" data-tabst="ptar"></span>
       </button>
+      <div class="nav-h">Control Estadístico de Procesos</div>
+      <button class="tab" role="tab" id="t-cep" aria-controls="v-cep" aria-selected="false" data-tab="cep" style="--k:#375C91">
+        <span class="dot"></span>Control Estadístico de Procesos<span class="st idle" data-tabst="cep"></span>
+      </button>
       <div class="nav-h">Diagramas</div>
       <button class="tab" role="tab" id="t-diagramas" aria-controls="v-diagramas" aria-selected="false" data-tab="diagramas" style="--k:#375C91">
         <span class="dot"></span>Diagramas de Procesos<span class="st idle" data-tabst="diagramas"></span>
@@ -520,6 +524,20 @@
       <div class="ptar-process-list" id="ptar-procesos"></div>
     </section>
 
+    <!-- ======= CONTROL ESTADÍSTICO DE PROCESOS ======= -->
+    <section class="view" id="v-cep" role="tabpanel" aria-labelledby="t-cep" hidden>
+      <div class="ptar-history-intro mb">
+        <div>
+          <h3>Predicciones de variables de Servicios a Planta</h3>
+          <p>Los modelos se organizan por servicio y área. Las estimaciones son herramientas de apoyo y no sustituyen las mediciones operacionales.</p>
+        </div>
+      </div>
+      <div class="card mb">
+        <div class="card-h"><h3>PTAB · Aguas Blancas</h3><span class="note">Área: Tanque Subterráneo</span></div>
+        <div class="card-b" id="cep-ptab-predictions"></div>
+      </div>
+    </section>
+
     <!-- ======= DIAGRAMAS · DOCUMENTACIÓN TÉCNICA ======= -->
     <section class="view diagramas-view" id="v-diagramas" role="tabpanel" aria-labelledby="t-diagramas" hidden>
       <div class="diagramas-intro">
@@ -759,9 +777,9 @@
 <script src="inventario_fallback.js?v=20261002-v11-9-logos"></script>
 <script src="verificados_fallback.js?v=20261002-v11-9-logos"></script>
 <script src="config.js?v=20261002-v11-9-logos"></script>
-<script src="app.js?v=20261015-bancos-binarios-v1"></script>
+<script src="app.js?v=20261019-cep1"></script>
 <script src="ptab_ph_ml_model.js?v=20261016-ml1"></script>
-<script src="ptab_ph_ml.js?v=20261016-ml1"></script>
+<script src="ptab_ph_ml.js?v=20261019-cep1"></script>
 <script src="diagramas.js?v=20261015-1"></script>
 <script src="dashboard_extras.js?v=20261019-v13"></script>
 </body>
