@@ -65,10 +65,10 @@ function instalarAvisos(){
   }
 }
 function instalarSug(){
-  if(window.SERVICIOS&&!SERVICIOS.sugerencias)SERVICIOS.sugerencias={nom:'Sugerencias',sub:'Ideas y oportunidades de mejora para el dashboard',color:'#1E63C8',corto:'Sugerencias',kpi:null,keys:[]};
+  if(typeof SERVICIOS!=='undefined'&&!SERVICIOS.sugerencias)SERVICIOS.sugerencias={nom:'Sugerencias',sub:'Ideas y oportunidades de mejora para el dashboard',color:'#1E63C8',corto:'Sugerencias',kpi:null,keys:[]};
   const form=document.getElementById('sug-form');if(form&&!form.dataset.bound){form.dataset.bound='1';form.addEventListener('submit',e=>{e.preventDefault();guardarSug();});}
   if(typeof ir==='function'&&!ir.__sug){const base=ir;const f=function(id){const r=base.apply(this,arguments);if(id==='sugerencias')pintarSug();return r;};f.__sug=true;window.ir=f;}
-  if(typeof dashDriveApplyMasterData==='function'&&!dashDriveApplyMasterData.__sug){const base=dashDriveApplyMasterData;const f=function(a){const r=base.apply(this,arguments);try{const raw=a&&a.data&&a.data.SUGERENCIAS;if(Array.isArray(raw)){setSug(raw);if(window.activa==='sugerencias')pintarSug();}}catch(e){}return r;};f.__sug=true;window.dashDriveApplyMasterData=f;}
+  if(typeof dashDriveApplyMasterData==='function'&&!dashDriveApplyMasterData.__sug){const base=dashDriveApplyMasterData;const f=function(a){const r=base.apply(this,arguments);try{const raw=a&&a.data&&a.data.SUGERENCIAS;if(Array.isArray(raw)){setSug(raw);if(typeof activa!=='undefined'&&activa==='sugerencias')pintarSug();}}catch(e){}return r;};f.__sug=true;window.dashDriveApplyMasterData=f;}
   pintarSug();leerSug();
 }
 instalarAvisos();instalarSug();
