@@ -9,7 +9,7 @@
  * MASTER_SHEET_ID = ID del Google Sheet Base_Maestra_Dashboard
  * WRITE_KEY       = clave compartida para autorizar cargas del operador
  */
-const BACKEND_VERSION = 'V12-2026-10-19';
+const BACKEND_VERSION = 'V13-2026-10-19';
 const AREA_SHEETS = {ptab:'PTAB', ptar:'PTAR', vapor:'VAPOR', suav:'SUAVIZADORES', wa:'COMPRESORES_REFRIGERACION'};
 const AREA_ALIASES = {
   ptab:'ptab', ptar:'ptar', vapor:'vapor', suav:'suav', suavizadores:'suav',
@@ -53,7 +53,7 @@ function doGet(e){
   let payload;
   try{
     const action=String(p.action||'read_master');
-    if(action==='health') payload={ok:true,service:'Dashboard Servicios · Google Drive',version:BACKEND_VERSION,acceptedAreas:Object.keys(AREA_ALIASES),supportsAppendSala:true,supportsSalaV5:true,supportsSalaV6:true,supportsNewPtabVaporVars:true,supportsUmaCooling:true,supportsChemicalInventory:true,supportsInventoryExcelUpload:true,supportsVerifiedChecklist:true,supportsVerifiedVisualReferences:true,verifiedLeakHeader:'Condicion Fuga',supportsSuggestions:true,time:new Date().toISOString()};
+    if(action==='health') payload={ok:true,service:'Dashboard Servicios · Google Drive',version:BACKEND_VERSION,acceptedAreas:Object.keys(AREA_ALIASES),supportsAppendSala:true,supportsSalaV5:true,supportsSalaV6:true,supportsNewPtabVaporVars:true,supportsUmaCooling:true,supportsChemicalInventory:true,supportsInventoryExcelUpload:true,supportsVerifiedChecklist:true,supportsVerifiedVisualReferences:true,verifiedLeakHeader:'Condicion Fuga',supportsSuggestions:true,supportsSuggestionDelete:true,time:new Date().toISOString()};
     else if(action==='read_master') payload=readMasterPayload_();
     else payload={ok:false,error:'Acción GET no soportada.'};
   }catch(err){
@@ -103,6 +103,17 @@ function doPost(e){
       const result=appendSuggestion_(ss,nombre,sugerencia);
       const payload=readMasterPayload_();
       payload.sheet='SUGERENCIAS';payload.added=1;payload.id=result.id;payload.total=result.total;
+      return json_(payload);
+    }
+
+    if(body.action==='delete_suggestion'){
+      authorize_(body.key);
+      const id=String(body.id||'').trim();
+      if(!id) return json_({ok:false,error:'No se indicó el ID de la sugerencia a eliminar.'});
+      const ss=openMaster_();
+      const result=deleteSuggestion_(ss,id);
+      const payload=readMasterPayload_();
+      payload.sheet='SUGERENCIAS';payload.deleted=result.deleted;payload.id=id;payload.total=result.total;
       return json_(payload);
     }
 
@@ -315,6 +326,20 @@ function appendSuggestion_(ss,nombre,sugerencia){
   sh.appendRow([id,fecha,hora,nombre,sugerencia,now]);
   SpreadsheetApp.flush();
   return {id:id,total:Math.max(sh.getLastRow()-1,0)};
+}
+
+function deleteSuggestion_(ss,id){
+  const sh=ensureSuggestionsSheet_(ss),lr=sh.getLastRow();
+  if(lr<2) throw new Error('No existen sugerencias registradas.');
+  const ids=sh.getRange(2,1,lr-1,1).getDisplayValues();
+  let rowNumber=-1;
+  for(let i=0;i<ids.length;i++){
+    if(String(ids[i][0]||'').trim()===id){rowNumber=i+2;break;}
+  }
+  if(rowNumber<0) throw new Error('La sugerencia ya no existe o fue eliminada anteriormente.');
+  sh.deleteRow(rowNumber);
+  SpreadsheetApp.flush();
+  return {deleted:1,total:Math.max(sh.getLastRow()-1,0)};
 }
 
 function iframeResponse_(obj,nonce,parentOrigin){
