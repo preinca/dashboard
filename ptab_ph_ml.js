@@ -127,7 +127,7 @@
   }
 
   function ensureCard(){
-    const view=document.getElementById('v-ptab');
+    const view=document.getElementById('cep-ptab-predictions');
     if(!view) return null;
     let card=document.getElementById('ptab-ph-ml-card');
     if(card) return card;
@@ -159,9 +159,7 @@
         </div>
         <div class="ptab-ml-foot" id="ptab-ph-ml-foot"></div>
       </div>`;
-    const anchor=document.getElementById('ptab-kpis-proceso');
-    if(anchor) anchor.insertAdjacentElement('afterend',card);
-    else view.insertAdjacentElement('afterbegin',card);
+    view.appendChild(card);
 
     const toggle=card.querySelector('#ptab-ph-ml-toggle');
     let enabled=false;
