@@ -68,6 +68,7 @@ const V = {
 const SERVICIOS = {
   resumen:{nom:'Resumen de planta', sub:'Lectura consolidada de los servicios de planta', keys:[]},
   inventario:{nom:'Inventario Quimico', sub:'Productos químicos de Servicios a Planta · disponibilidad y stock de seguridad', color:'#B42318', corto:'Inventario Quimico', kpi:null, keys:[]},
+  cep:{nom:'Control Estadístico de Procesos', sub:'Predicciones de variables organizadas por servicio y área', color:'#375C91', corto:'Control Estadístico', kpi:null, keys:[]},
   ptab:{nom:'PTAB · Aguas Blancas', sub:'Planta de tratamiento de aguas blancas · agua cruda y agua filtrada',
         color:C.agua, corto:'PTAB · Aguas Blancas', kpi:null, keys:[]},
   suav:{nom:'Suavizadores y tanques de agua', sub:'Agua suave de servicios y procesos · control operacional por equipo',
