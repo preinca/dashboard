@@ -9,7 +9,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="estilos.css?v=20261002-v11-9-logos">
-<link rel="stylesheet" href="diagramas.css?v=20261015-1">
+<link rel="stylesheet" href="diagramas.css?v=20261015-1">\n<link rel="stylesheet" href="dashboard_extras.css?v=20261019-v12">
 <link rel="stylesheet" href="ptab_ph_ml.css?v=20261016-ml1">
 
 <style id="drive-refresh-critical">
@@ -26,6 +26,7 @@
   <aside class="rail">
     <div class="brand">
       <div class="brand-logos" aria-label="Identidad corporativa">
+        <img class="logo" src="logo-empresas-polar.png?v=20261019-v12" alt="Empresas Polar" width="150">
         <img class="logo-preinca" src="logo-preinca.jpg?v=20261002-v11-9-logos" alt="PREINCA">
       </div>
       <div>
@@ -64,6 +65,9 @@
       <div class="nav-h">Lista de Verificados</div>
       <button class="tab" role="tab" id="t-verificados" aria-controls="v-verificados" aria-selected="false" data-tab="verificados" style="--k:#1E63C8">
         <span class="dot"></span>Checklist Vapor y Condensado<span class="st idle" data-tabst="verificados"></span>
+      </button>
+      <button class="tab" role="tab" id="t-sugerencias" aria-controls="v-sugerencias" aria-selected="false" data-tab="sugerencias" style="--k:#1E63C8">
+        <span class="dot"></span>Sugerencias<span class="st idle" data-tabst="sugerencias"></span>
       </button>
     </nav>
   </aside>
@@ -644,6 +648,57 @@
         </div>
       </div>
     </section>
+
+    <!-- ======= SUGERENCIAS ======= -->
+    <section class="view" id="v-sugerencias" role="tabpanel" aria-labelledby="t-sugerencias" hidden>
+      <div class="card mb">
+        <div class="card-b sug-intro">
+          <div class="sug-intro-copy">
+            <h3>Ayúdanos a mejorar el dashboard</h3>
+            <p>Operadores, técnicos, supervisores y coordinadores pueden registrar aquí ideas, mejoras o necesidades detectadas durante el uso del dashboard. Cada sugerencia queda almacenada en la Base Maestra de Google Drive.</p>
+          </div>
+          <span class="pill idle" id="sug-source"><i></i>Google Drive</span>
+        </div>
+      </div>
+
+      <div class="card mb">
+        <div class="card-h">
+          <div>
+            <h3>Nueva sugerencia</h3>
+            <span class="note">Indique su nombre y describa de forma clara qué le gustaría mejorar o agregar.</span>
+          </div>
+        </div>
+        <div class="card-b">
+          <form class="sug-form" id="sug-form">
+            <label class="sug-field">Nombre
+              <input id="sug-name" type="text" maxlength="120" autocomplete="name" placeholder="Nombre y apellido" required>
+            </label>
+            <label class="sug-field">Sugerencia
+              <textarea id="sug-message" maxlength="2000" placeholder="Escriba aquí su sugerencia para el dashboard…" required></textarea>
+            </label>
+            <div class="sug-form-actions">
+              <span class="sug-form-status" id="sug-form-status" aria-live="polite"></span>
+              <button type="submit" class="sug-send" id="sug-send">Enviar sugerencia</button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-h">
+          <div>
+            <h3>Sugerencias registradas</h3>
+            <span class="note" id="sug-count">0 sugerencias registradas</span>
+          </div>
+        </div>
+        <div class="card-b sug-history-wrap">
+          <table class="tbl sug-table">
+            <thead><tr><th>Fecha</th><th>Nombre</th><th>Sugerencia</th></tr></thead>
+            <tbody id="sug-table-body"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
   </div>
 </div>
 
@@ -706,6 +761,6 @@
 <script src="app.js?v=20261015-bancos-binarios-v1"></script>
 <script src="ptab_ph_ml_model.js?v=20261016-ml1"></script>
 <script src="ptab_ph_ml.js?v=20261016-ml1"></script>
-<script src="diagramas.js?v=20261015-1"></script>
+<script src="diagramas.js?v=20261015-1"></script>\n<script src="dashboard_extras.js?v=20261019-v12"></script>
 </body>
 </html>
