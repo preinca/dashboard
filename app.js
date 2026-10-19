@@ -5037,7 +5037,9 @@ function dashUmaDefsV8(){
     {id:'sala_uma_132_temperatura_timed',area:'Sistema de Enfriamiento UMA',equipo:'Bombas Formulación',variable:'Temperatura',unidad:'°C',tipoDato:'Numérico',rango:'12 - 20 °C',criterio:'Rango operativo 12 - 20 °C',sistema:DASH_SALA_UMA_SYSTEM,slotMode:'timed',row:132},
     {id:'sala_uma_133_presion_timed',area:'Sistema de Enfriamiento UMA',equipo:'Bombas Formulación',variable:'Presión',unidad:'psi',tipoDato:'Numérico',rango:'40 - 120 psi',criterio:'Rango operativo 40 - 120 psi',sistema:DASH_SALA_UMA_SYSTEM,slotMode:'timed',row:133},
     {id:'sala_uma_134_temperatura_timed',area:'Sistema de Enfriamiento UMA',equipo:'Bombas Envasado',variable:'Temperatura',unidad:'°C',tipoDato:'Numérico',rango:'12 - 20 °C',criterio:'Rango operativo 12 - 20 °C',sistema:DASH_SALA_UMA_SYSTEM,slotMode:'timed',row:134},
-    {id:'sala_uma_135_presion_timed',area:'Sistema de Enfriamiento UMA',equipo:'Bombas Envasado',variable:'Presión',unidad:'psi',tipoDato:'Numérico',rango:'40 - 120 psi',criterio:'Rango operativo 40 - 120 psi',sistema:DASH_SALA_UMA_SYSTEM,slotMode:'timed',row:135}
+    {id:'sala_uma_135_presion_timed',area:'Sistema de Enfriamiento UMA',equipo:'Bombas Envasado',variable:'Presión',unidad:'psi',tipoDato:'Numérico',rango:'40 - 120 psi',criterio:'Rango operativo 40 - 120 psi',sistema:DASH_SALA_UMA_SYSTEM,slotMode:'timed',row:135},
+    {id:'sala_uma_136_temperatura_timed',area:'Sistema de Enfriamiento UMA',equipo:'Bombas Envasado · Bomba 3',variable:'Temperatura',unidad:'°C',tipoDato:'Numérico',rango:'12 - 20 °C',criterio:'Rango operativo 12 - 20 °C',sistema:DASH_SALA_UMA_SYSTEM,slotMode:'timed',row:136},
+    {id:'sala_uma_137_presion_timed',area:'Sistema de Enfriamiento UMA',equipo:'Bombas Envasado · Bomba 3',variable:'Presión',unidad:'psi',tipoDato:'Numérico',rango:'40 - 120 psi',criterio:'Rango operativo 40 - 120 psi',sistema:DASH_SALA_UMA_SYSTEM,slotMode:'timed',row:137}
   ];
 }
 
