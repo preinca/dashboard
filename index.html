@@ -10,7 +10,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="estilos.css?v=20261002-v11-9-logos">
 <link rel="stylesheet" href="diagramas.css?v=20261015-1">
-<link rel="stylesheet" href="dashboard_extras.css?v=20261019-v12">
+<link rel="stylesheet" href="dashboard_extras.css?v=20261019-v13">
 <link rel="stylesheet" href="ptab_ph_ml.css?v=20261016-ml1">
 
 <style id="drive-refresh-critical">
@@ -67,6 +67,7 @@
       <button class="tab" role="tab" id="t-verificados" aria-controls="v-verificados" aria-selected="false" data-tab="verificados" style="--k:#1E63C8">
         <span class="dot"></span>Checklist Vapor y Condensado<span class="st idle" data-tabst="verificados"></span>
       </button>
+      <div class="nav-h">Recomendaciones</div>
       <button class="tab" role="tab" id="t-sugerencias" aria-controls="v-sugerencias" aria-selected="false" data-tab="sugerencias" style="--k:#1E63C8">
         <span class="dot"></span>Sugerencias<span class="st idle" data-tabst="sugerencias"></span>
       </button>
@@ -656,9 +657,8 @@
         <div class="card-b sug-intro">
           <div class="sug-intro-copy">
             <h3>Ayúdanos a mejorar el dashboard</h3>
-            <p>Operadores, técnicos, supervisores y coordinadores pueden registrar aquí ideas, mejoras o necesidades detectadas durante el uso del dashboard. Cada sugerencia queda almacenada en la Base Maestra de Google Drive.</p>
+            <p>Operadores, técnicos, supervisores y coordinadores pueden registrar aquí ideas, mejoras o necesidades detectadas durante el uso del dashboard. Las sugerencias quedarán disponibles para su revisión y seguimiento.</p>
           </div>
-          <span class="pill idle" id="sug-source"><i></i>Google Drive</span>
         </div>
       </div>
 
@@ -671,7 +671,7 @@
         </div>
         <div class="card-b">
           <form class="sug-form" id="sug-form">
-            <label class="sug-field">Nombre
+            <label class="sug-field sug-name-field">Nombre
               <input id="sug-name" type="text" maxlength="120" autocomplete="name" placeholder="Nombre y apellido" required>
             </label>
             <label class="sug-field">Sugerencia
@@ -694,7 +694,7 @@
         </div>
         <div class="card-b sug-history-wrap">
           <table class="tbl sug-table">
-            <thead><tr><th>Fecha</th><th>Nombre</th><th>Sugerencia</th></tr></thead>
+            <thead><tr><th>Fecha</th><th>Nombre</th><th>Sugerencia</th><th class="sug-action-head">Acción</th></tr></thead>
             <tbody id="sug-table-body"></tbody>
           </table>
         </div>
@@ -763,6 +763,6 @@
 <script src="ptab_ph_ml_model.js?v=20261016-ml1"></script>
 <script src="ptab_ph_ml.js?v=20261016-ml1"></script>
 <script src="diagramas.js?v=20261015-1"></script>
-<script src="dashboard_extras.js?v=20261019-v12"></script>
+<script src="dashboard_extras.js?v=20261019-v13"></script>
 </body>
 </html>
