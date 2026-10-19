@@ -5015,7 +5015,9 @@ setTimeout(()=>{
    Sistema de Enfriamiento UMA
    - Bombas Formulación: Temperatura 12-20 °C / Presión 40-120 psi
    - Bombas Envasado:    Temperatura 12-20 °C / Presión 40-120 psi
-   - Lecturas 7AM, 1PM, 7PM y 1AM desde filas 132-135 de Hoja1.
+   - Envasado: lecturas existentes en filas 134-135 y bomba adicional en 136-137.
+   - Las tres bombas comparten el bloque visual Envasado de Hoja1.
+   - Lecturas 7AM, 1PM, 7PM y 1AM en columnas E, G, I y K.
    - Se integra como quinto sistema a los filtros, tablas e históricos
      de Compresores · Refrigeración · NH3.
    ========================================================= */
@@ -5072,6 +5074,8 @@ leerSalaCompresores=async function(buffer){
     {col:9,turno:'19:00',orig:'7PM',op:opNoche,tag:'1900'},
     {col:11,turno:'01:00',orig:'1AM',op:opNoche,tag:'0100'}
   ];
+  // Filas absolutas del formato integrado: 132-133 Formulación, 134-137 Envasado.
+  // No se infiere la ubicación de la bomba por celdas combinadas: se leen E/G/I/K por fila.
   const umaDefs=dashUmaDefsV8(),umaRows=[];
   umaDefs.forEach(def=>{
     const isTemp=def.variable==='Temperatura',min=isTemp?12:40,max=isTemp?20:120;
