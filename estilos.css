@@ -1657,3 +1657,5 @@ body.verif-modal-open{overflow:hidden}
 .resumen-desv-servicio{color:var(--resumen-area,#375C91)}
 .resumen-desv-rango{font-size:11px;line-height:1.4;color:var(--ink-2);background:var(--bg,#f5f7f9);padding:5px 7px;border-radius:7px}
 .resumen-desv-rango b{color:var(--ink)}
+
+.supervisor-alerts{display:flex;flex-direction:column;gap:5px;margin:8px 10px 14px}.supervisor-alerts button{cursor:pointer;background:#224d77;color:white;border:0;border-radius:9px;padding:10px;font:inherit;font-size:12px;font-weight:750}.supervisor-alerts button[aria-pressed="true"]{background:#196a54}.supervisor-alerts span{font-size:10px;color:#84919f;line-height:1.4;overflow-wrap:anywhere}
