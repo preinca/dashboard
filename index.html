@@ -9,7 +9,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="estilos.css?v=20261020-supervisor1">
+<link rel="stylesheet" href="estilos.css?v=20261020-supervisor2">
 <link rel="stylesheet" href="diagramas.css?v=20261015-1">
 <link rel="stylesheet" href="dashboard_extras.css?v=20261020-descargar-formatos-v1">
 <link rel="stylesheet" href="ptab_ph_ml.css?v=20261016-ml1">
@@ -38,7 +38,7 @@
       </div>
     </div>
     <nav class="nav" role="tablist" aria-label="Servicios de planta">
-      <div class="supervisor-alerts"><button type="button" id="supervisor-alert-toggle" aria-pressed="false">Activar alertas</button><span id="supervisor-alert-status">Alertas desactivadas</span></div>
+      <div class="supervisor-alerts"><span id="supervisor-alert-status" aria-live="polite">Vigilancia de desviaciones activa</span><button type="button" id="supervisor-alert-permission" hidden>Permitir avisos del navegador</button></div><div id="supervisor-alert-toast" class="supervisor-alert-toast" role="alert" hidden></div>
       <div class="nav-h">Vista general</div>
       <button class="tab" role="tab" id="t-resumen" aria-controls="v-resumen" aria-selected="true" data-tab="resumen" style="--k:#131A20">
         <span class="dot"></span>Resumen de planta<span class="st" data-tabst="resumen"></span>
@@ -810,6 +810,6 @@
 <script src="diagramas.js?v=20261015-1"></script>
 <script src="dashboard_extras.js?v=20261019-v13"></script>
 <script src="ptar_diagrama_interactivo.js?v=20261020-3"></script>
-<script src="supervisor_alertas.js?v=20261020-1"></script>
+<script src="supervisor_alertas.js?v=20261020-2"></script>
 </body>
 </html>
