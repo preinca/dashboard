@@ -2684,9 +2684,9 @@ function pintarWA(tab){
   const processHost=document.getElementById(`${tab}-procesos`);if(processHost){const slots=waSlots(tab),slotHeaders=slots.map(s=>`<th class="num">${esc(waShortTurn(s.turno))}<small>${esc(s.operador||'Sin operador')} · ${esc(s.reporteId||'')}</small></th>`).join('');processHost.innerHTML=areas.map((area,ai)=>{const vars=waVarsArea(tab,area),st=waStats(tab,area),e=waEstadoServicio(st);const byEquip=new Map();vars.forEach(v=>{if(!byEquip.has(v.equipo))byEquip.set(v.equipo,[]);byEquip.get(v.equipo).push(v);});const rows=[...byEquip.entries()].map(([eq,vlist])=>vlist.map((v,i)=>{const eqCell=i===0?`<td class="ptar-puesto" rowspan="${vlist.length}">${esc(eq)}</td>`:'';const recs=slots.map(s=>waRegistro(tab,v.id,s,c.fecha));const hasPriority=recs.some(waEsPrioridad);const cells=recs.map(r=>{const stc=waEstadoClase(r);return `<td class="num ptar-lectura wa-cell ${stc}" title="${esc(r?waEstadoTxt(r):'Sin dato')}">${r?`${r.indicador?`<span class="wa-indicator">${esc(r.indicador)}</span> `:''}${esc(waValorTexto(r,true))}`:'—'}</td>`;}).join('');return `<tr class="${hasPriority?'has-dev':''}">${eqCell}<td>${esc(v.variable)}</td><td class="ptar-rango">${esc(waCriterio(v))}</td>${cells}</tr>`;}).join('')).join('');return `<section class="card ptar-process-card wa-theme wa-${tab}-theme" aria-labelledby="wa-${tab}-proc-${ai}"><div class="card-h"><h3 id="wa-${tab}-proc-${ai}">${esc(area)}</h3><span class="pill ${e.st}"><i></i>${esc(e.txt)}</span><span class="note">${waFechaTxt(c.fecha,true)} · ${st.registradas} registros</span></div><div class="card-b ptar-table-wrap"><table class="tbl ptar-table wa-real-table"><thead><tr><th>Equipo</th><th>Variable</th><th>Criterio / rango disponible</th>${slotHeaders}</tr></thead><tbody>${rows}</tbody></table></div></section>`;}).join('');}
   pintarWAGraficas(tab);pintarWADeviaciones(tab);
 }
-function prioridadWA(tab){
-  const c=waCfg(tab);if(!c)return[];const rows=waRowsFecha(tab).filter(waEsPrioridad),m=new Map();rows.forEach(r=>{if(!m.has(r.id))m.set(r.id,{tipo:'wa',waTab:tab,servicio:c.nombre,tab,color:c.color,id:r.id,def:waDef(tab,r.id),rows:[]});m.get(r.id).rows.push(r);});
-  return [...m.values()].map(g=>{g.rows.sort(waSortRows);const r=g.rows[0],last=g.rows[g.rows.length-1],def=g.def||{},crit=g.rows.some(x=>waEstadoClase(x)==='crit');return Object.assign(g,{severity:crit?'crit':'warn',variable:r.variable,proceso:r.area,puesto:r.equipo,rango:waCriterio(def),unidad:def.unidad||r.unidad||'',fecha:c.fecha,fechaTxt:waFechaTxt(c.fecha,true),lecturas:g.rows.map(x=>`${waShortTurn(x.turno)} · ${waValorTexto(x,true)} · ${waEstadoTxt(x)}`).join(' · '),operadores:[...new Set(g.rows.map(x=>x.operador).filter(Boolean))].join(' / '),observacion:[...new Set(g.rows.map(x=>x.observacion).filter(Boolean))].join(' · '),lecturaPrincipal:waValorTexto(last),turnoPrincipal:waShortTurn(last.turno)});});
+function prioridadWA(tab,fechaElegida=null){
+  const c=waCfg(tab);if(!c)return[];const rows=waRowsFecha(tab,fechaElegida).filter(waEsPrioridad),m=new Map();rows.forEach(r=>{if(!m.has(r.id))m.set(r.id,{tipo:'wa',waTab:tab,servicio:c.nombre,tab,color:c.color,id:r.id,def:waDef(tab,r.id),rows:[]});m.get(r.id).rows.push(r);});
+  return [...m.values()].map(g=>{g.rows.sort(waSortRows);const r=g.rows[0],last=g.rows[g.rows.length-1],def=g.def||{},crit=g.rows.some(x=>waEstadoClase(x)==='crit');return Object.assign(g,{severity:crit?'crit':'warn',variable:r.variable,proceso:r.area,puesto:r.equipo,rango:waCriterio(def),unidad:def.unidad||r.unidad||'',fecha:fechaElegida||c.fecha,fechaTxt:waFechaTxt(fechaElegida||c.fecha,true),lecturas:g.rows.map(x=>`${waShortTurn(x.turno)} · ${waValorTexto(x,true)} · ${waEstadoTxt(x)}`).join(' · '),operadores:[...new Set(g.rows.map(x=>x.operador).filter(Boolean))].join(' / '),observacion:[...new Set(g.rows.map(x=>x.observacion).filter(Boolean))].join(' · '),lecturaPrincipal:waValorTexto(last),turnoPrincipal:waShortTurn(last.turno)});});
 }
 function cargarWA(tab,data,catalogo,fechas,source){const c=waCfg(tab);if(!c)return;c.data=(data||[]).slice();c.catalogo=(catalogo||[]).slice();c.fechas=[...new Set((fechas&&fechas.length?fechas:c.data.map(r=>r.fecha).filter(Boolean)))].sort();if(!c.fecha||!c.fechas.includes(c.fecha))c.fecha=c.fechas[c.fechas.length-1]||null;c.source=source||c.source;waPoblarFechas(tab);if(document.body&&document.body.dataset.dashboardReady==='1'){pintarWA(tab);pintarValores();pintarEncabezado();pintarPrioridades();}}
 function waExcelDate(v){if(v===null||v===undefined||v==='')return null;if(typeof v==='number'){const d=new Date(Date.UTC(1899,11,30));d.setUTCDate(d.getUTCDate()+Math.floor(v));return d.toISOString().slice(0,10);}const s=String(v).trim();if(/^\d{4}-\d{2}-\d{2}$/.test(s))return s;const m=s.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})$/);if(m){let y=Number(m[3]);if(y<100)y+=2000;return `${y}-${String(m[2]).padStart(2,'0')}-${String(m[1]).padStart(2,'0')}`;}return null;}
@@ -2710,21 +2710,21 @@ function inicializarWAExcel(){['aire-excel-input','frio-excel-input'].forEach(id
    9B. Prioridad operacional · variables fuera de rango
    Se muestra antes que el resto del contenido en Resumen y en cada pestaña.
    --------------------------------------------------------- */
-function prioridadReal(tipo){
+function prioridadReal(tipo,fechaElegida=null){
   let rows=[], defFn=null, valorFn=null, fecha='', fechaFn=null, turnoFn=t=>t, color=C.crit, servicio='', tab='';
   if(tipo==='ptar'){
-    rows=registrosFechaPTAR().filter(r=>estadoRegistroPTAR(r)==='FUERA DE RANGO');
-    defFn=ptarDefPorId; valorFn=valorTextoPTAR; fecha=PTAR_FECHA; fechaFn=etiquetaFechaPTAR; color=C.ptar; servicio='PTAR'; tab='ptar';
+    rows=registrosFechaPTAR(fechaElegida||undefined).filter(r=>estadoRegistroPTAR(r)==='FUERA DE RANGO');
+    defFn=ptarDefPorId; valorFn=valorTextoPTAR; fecha=fechaElegida||PTAR_FECHA; fechaFn=etiquetaFechaPTAR; color=C.ptar; servicio='PTAR'; tab='ptar';
   }else if(tipo==='vapor'){
-    rows=registrosFechaVapor().filter(r=>estadoRegistroVapor(r)==='FUERA DE RANGO');
-    defFn=vaporDefPorId; valorFn=valorTextoVapor; fecha=VAPOR_FECHA; fechaFn=etiquetaFechaVapor; color=C.vapor; servicio='Vapor'; tab='vapor';
+    rows=registrosFechaVapor(fechaElegida||undefined).filter(r=>estadoRegistroVapor(r)==='FUERA DE RANGO');
+    defFn=vaporDefPorId; valorFn=valorTextoVapor; fecha=fechaElegida||VAPOR_FECHA; fechaFn=etiquetaFechaVapor; color=C.vapor; servicio='Vapor'; tab='vapor';
   }else if(tipo==='suav'){
-    rows=registrosFechaSuav().filter(r=>estadoRegistroSuav(r)==='FUERA DE RANGO');
-    defFn=suavDefPorId; valorFn=valorTextoSuav; fecha=SUAV_FECHA; fechaFn=etiquetaFechaSuav; color=C.suav; servicio='Suavizadores · Tanques'; tab='suav';
+    rows=registrosFechaSuav(fechaElegida||undefined).filter(r=>estadoRegistroSuav(r)==='FUERA DE RANGO');
+    defFn=suavDefPorId; valorFn=valorTextoSuav; fecha=fechaElegida||SUAV_FECHA; fechaFn=etiquetaFechaSuav; color=C.suav; servicio='Suavizadores · Tanques'; tab='suav';
     turnoFn=t=>SUAV_TURNO_ETIQUETA[t]||t;
   }else if(tipo==='ptab'){
-    rows=registrosFechaPtabr().filter(r=>estadoRegistroPtabr(r)==='FUERA DE RANGO');
-    defFn=ptabrDefPorId; valorFn=valorTextoPtabr; fecha=PTABR_FECHA; fechaFn=etiquetaFechaPtabr; color=C.agua; servicio='PTAB · Aguas Blancas'; tab='ptab';
+    rows=registrosFechaPtabr(fechaElegida||undefined).filter(r=>estadoRegistroPtabr(r)==='FUERA DE RANGO');
+    defFn=ptabrDefPorId; valorFn=valorTextoPtabr; fecha=fechaElegida||PTABR_FECHA; fechaFn=etiquetaFechaPtabr; color=C.agua; servicio='PTAB · Aguas Blancas'; tab='ptab';
     turnoFn=t=>PTABR_TURNO_ETIQUETA[t]||t;
   }
   const map=new Map();
@@ -2764,14 +2764,13 @@ function prioridadesTab(tab){
   if(tab==='aire'||tab==='frio') return prioridadWA(tab);
   return [];
 }
-function prioridadesResumen(){
-  const all=[
-    ...prioridadReal('ptab'),...prioridadReal('suav'),...prioridadReal('vapor'),...prioridadWA('aire'),...prioridadWA('frio'),...prioridadReal('ptar')
-  ];
-  return all.sort((a,b)=>{
-    const rank=s=>s==='crit'?0:1;
-    return rank(a.severity)-rank(b.severity) || a.servicio.localeCompare(b.servicio,'es');
-  });
+let RESUMEN_DESV_FECHA=null;
+function resumenFechasDisponibles(){
+  return [...new Set([...(PTABR_FECHAS||[]),...(SUAV_FECHAS||[]),...(VAPOR_FECHAS||[]),...(PTAR_FECHAS||[]),...((WA_CFG.aire&&WA_CFG.aire.fechas)||[]),...((WA_CFG.frio&&WA_CFG.frio.fechas)||[])].filter(f=>/^\d{4}-\d{2}-\d{2}$/.test(String(f))))].sort().reverse();
+}
+function prioridadesResumen(fecha){
+  const all=[...prioridadReal('ptab',fecha),...prioridadReal('suav',fecha),...prioridadReal('vapor',fecha),...prioridadWA('aire',fecha),...prioridadWA('frio',fecha),...prioridadReal('ptar',fecha)];
+  return all.sort((a,b)=>(a.severity==='crit'?0:1)-(b.severity==='crit'?0:1)||a.servicio.localeCompare(b.servicio,'es'));
 }
 function prioridadDetalle(item){
   const parts=[];
@@ -2880,10 +2879,26 @@ function renderPriorityZone(host,items,tab){
   });
 }
 function pintarPrioridades(){
-  const desv=prioridadesResumen(),grid=document.getElementById('resumen-desv-grid'),count=document.getElementById('resumen-desv-count');
-  if(grid){if(count)count.textContent=desv.length?desv.length+' desviación'+(desv.length===1?'':'es'):'Sin desviaciones';
-    grid.innerHTML=desv.length?desv.map(it=>'<button class="resumen-desv-card" type="button" data-goto="'+esc(it.tab)+'"><span class="resumen-desv-servicio">'+esc(it.servicio)+'</span><span class="resumen-desv-value">'+esc(it.lecturaPrincipal==null?'Sin lectura':String(it.lecturaPrincipal))+(it.unidad?'<small> '+esc(it.unidad)+'</small>':'')+'</span><span class="resumen-desv-variable">'+esc(it.variable||'Variable')+'</span><span class="resumen-desv-area">'+esc([it.proceso,it.puesto].filter(Boolean).join(' · '))+'</span></button>').join(''):'<div class="resumen-desv-empty">No se detectan desviaciones en los registros disponibles para las fechas seleccionadas.</div>';
+  const selector=document.getElementById('resumen-desv-fecha');
+  const fechas=resumenFechasDisponibles();
+  if(!RESUMEN_DESV_FECHA||!fechas.includes(RESUMEN_DESV_FECHA))RESUMEN_DESV_FECHA=fechas[0]||null;
+  if(selector){
+    const signature=fechas.join('|');
+    if(selector.dataset.dates!==signature){
+      selector.innerHTML=fechas.map(f=>'<option value="'+esc(f)+'">'+esc(f.split('-').reverse().join('/'))+'</option>').join('');
+      selector.dataset.dates=signature;
+    }
+    selector.value=RESUMEN_DESV_FECHA||'';
+    selector.disabled=!fechas.length;
   }
+  const desv=RESUMEN_DESV_FECHA?prioridadesResumen(RESUMEN_DESV_FECHA):[];
+  const grid=document.getElementById('resumen-desv-grid'),count=document.getElementById('resumen-desv-count');
+  if(count)count.innerHTML='<strong>'+desv.length+'</strong><span> desviación'+(desv.length===1?'':'es')+'</span>';
+  if(grid)grid.innerHTML=desv.length?desv.map(it=>{
+    const colors={ptab:'#16825B',suav:'#2A7A68',vapor:'#C0451B',aire:'#1E63C8',frio:'#B8860B',ptar:'#7354A2'};
+    const col=colors[it.tab]||'#375C91', rango=it.rango&&it.rango!=='—'?it.rango:'No definido en la fuente';
+    return '<button class="resumen-desv-card" style="--resumen-area:'+col+'" type="button" data-goto="'+esc(it.tab)+'"><span class="resumen-desv-servicio">'+esc(it.servicio)+'</span><span class="resumen-desv-value">'+esc(it.lecturaPrincipal==null?'Sin lectura':String(it.lecturaPrincipal))+(it.unidad?'<small> '+esc(it.unidad)+'</small>':'')+'</span><span class="resumen-desv-variable">'+esc(it.variable||'Variable')+'</span><span class="resumen-desv-rango">Rango operativo: <b>'+esc(rango)+'</b></span><span class="resumen-desv-area">'+esc([it.proceso,it.puesto].filter(Boolean).join(' · '))+'</span></button>';
+  }).join(''):'<div class="resumen-desv-empty">'+(RESUMEN_DESV_FECHA?'No hay desviaciones registradas para la fecha seleccionada.':'No hay fechas disponibles en los datos cargados.')+'</div>';
   const tabActual=(typeof activa!=='undefined'&&activa)?activa:'resumen';
   if(tabActual!=='resumen') renderPriorityZone(document.getElementById('priority-'+tabActual),prioridadesTab(tabActual),tabActual);
 }
@@ -3160,6 +3175,7 @@ function ir(id){
   else pintarGraficas();
   pintarPrioridades();
 }
+document.getElementById('resumen-desv-fecha')?.addEventListener('change',e=>{RESUMEN_DESV_FECHA=e.target.value;pintarPrioridades();});
 document.querySelectorAll('.tab').forEach(b=>{
   b.addEventListener('click', ()=>ir(b.dataset.tab));
   b.addEventListener('keydown', e=>{
