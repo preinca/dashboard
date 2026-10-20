@@ -2880,7 +2880,10 @@ function renderPriorityZone(host,items,tab){
   });
 }
 function pintarPrioridades(){
-  renderPriorityZone(document.getElementById('priority-resumen'),prioridadesResumen(),'resumen');
+  const desv=prioridadesResumen(),grid=document.getElementById('resumen-desv-grid'),count=document.getElementById('resumen-desv-count');
+  if(grid){if(count)count.textContent=desv.length?desv.length+' desviación'+(desv.length===1?'':'es'):'Sin desviaciones';
+    grid.innerHTML=desv.length?desv.map(it=>'<button class="resumen-desv-card" type="button" data-goto="'+esc(it.tab)+'"><span class="resumen-desv-servicio">'+esc(it.servicio)+'</span><span class="resumen-desv-value">'+esc(it.lecturaPrincipal==null?'Sin lectura':String(it.lecturaPrincipal))+(it.unidad?'<small> '+esc(it.unidad)+'</small>':'')+'</span><span class="resumen-desv-variable">'+esc(it.variable||'Variable')+'</span><span class="resumen-desv-area">'+esc([it.proceso,it.puesto].filter(Boolean).join(' · '))+'</span></button>').join(''):'<div class="resumen-desv-empty">No se detectan desviaciones en los registros disponibles para las fechas seleccionadas.</div>';
+  }
   const tabActual=(typeof activa!=='undefined'&&activa)?activa:'resumen';
   if(tabActual!=='resumen') renderPriorityZone(document.getElementById('priority-'+tabActual),prioridadesTab(tabActual),tabActual);
 }
