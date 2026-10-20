@@ -36,27 +36,52 @@ function content(point){
  }).join('');
  return '<h4>'+safe(point.name)+'</h4><p>Último día con lecturas: '+safe(date?date.split('-').reverse().join('/'):'Sin registros')+'</p>'+cells;
 }
-function show(point,button){
- tooltip.innerHTML=content(point);
- tooltip.hidden=false;
- const stage=root.getBoundingClientRect(),node=button.getBoundingClientRect();
- const x=node.left-stage.left+node.width/2,y=node.top-stage.top;
- tooltip.style.left=Math.min(Math.max(x,200),Math.max(200,stage.width-200))+'px';
- tooltip.style.top=Math.max(10,y-8)+'px';
- tooltip.classList.toggle('ptar-diag-tooltip-below',y<220);
+let hideTimer=null;
+let pinned=false;
+function cancelHide(){if(hideTimer!==null){clearTimeout(hideTimer);hideTimer=null;}}
+function hide(force=false){
+  cancelHide();
+  if(pinned&&!force)return;
+  pinned=false;
+  tooltip.hidden=true;
+  tooltip.dataset.current='';
 }
-function hide(){tooltip.hidden=true;}
+function scheduleHide(){
+  cancelHide();
+  if(!pinned)hideTimer=setTimeout(()=>hide(),450);
+}
+function show(point,button,lock=false){
+  cancelHide();
+  if(pinned&&!lock&&tooltip.dataset.current!==point.name)return;
+  if(tooltip.dataset.current!==point.name){tooltip.innerHTML=content(point);tooltip.scrollTop=0;}
+  tooltip.dataset.current=point.name;
+  tooltip.hidden=false;
+  if(lock)pinned=true;
+  const stage=root.getBoundingClientRect(),node=button.getBoundingClientRect();
+  const x=node.left-stage.left+node.width/2,y=node.top-stage.top;
+  tooltip.style.left=Math.min(Math.max(x,200),Math.max(200,stage.width-200))+'px';
+  tooltip.style.top=Math.max(10,y-8)+'px';
+  tooltip.classList.toggle('ptar-diag-tooltip-below',y<220);
+}
+tooltip.addEventListener('mouseenter',cancelHide);
+tooltip.addEventListener('mouseleave',scheduleHide);
+tooltip.addEventListener('focusin',cancelHide);
+tooltip.addEventListener('focusout',scheduleHide);
 points.forEach(point=>{
  const b=document.createElement('button');b.type='button';b.className='ptar-diag-point';b.style.left=point.x+'%';b.style.top=point.y+'%';b.style.setProperty('--dot-color',point.color);
  b.setAttribute('aria-label','Ver lecturas de '+point.name);
  b.innerHTML='<span aria-hidden="true"></span>';
  b.addEventListener('mouseenter',()=>show(point,b));
  b.addEventListener('focus',()=>show(point,b));
- b.addEventListener('mouseleave',hide);b.addEventListener('blur',hide);
- b.addEventListener('click',()=>{if(!tooltip.hidden&&tooltip.dataset.current===point.name){hide();tooltip.dataset.current='';}else{show(point,b);tooltip.dataset.current=point.name;}});
+ b.addEventListener('mouseleave',scheduleHide);
+ b.addEventListener('blur',scheduleHide);
+ b.addEventListener('click',()=>{
+   if(pinned&&tooltip.dataset.current===point.name){hide(true);}
+   else {pinned=false;show(point,b,true);}
+ });
  root.appendChild(b);
 });
 function refreshDate(){const d=latestDate();badge.textContent='Datos más recientes: '+(d?d.split('-').reverse().join('/'):'Sin registros');}
-btn?.addEventListener('click',()=>{normal.hidden=true;panel.hidden=false;refreshDate();hide();});
-back?.addEventListener('click',()=>{panel.hidden=true;normal.hidden=false;hide();});
+btn?.addEventListener('click',()=>{normal.hidden=true;panel.hidden=false;refreshDate();hide(true);});
+back?.addEventListener('click',()=>{panel.hidden=true;normal.hidden=false;hide(true);});
 })();
