@@ -150,3 +150,9 @@
   .sug-form-status{margin-right:0}
   .sug-send{width:100%;min-width:0}
 }
+
+/* Enlace uniforme para descargar el formato original de cada servicio */
+.formato-descarga{display:flex;justify-content:flex-end;margin:0 0 13px;gap:10px}
+.formato-descarga-btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:10px 15px;border:1px solid #bfd1e5;border-radius:10px;background:#f0f6fc;color:#1d4c80;text-decoration:none;font-size:13px;font-weight:750;line-height:1.3;transition:background .15s,border-color .15s}
+.formato-descarga-btn:hover,.formato-descarga-btn:focus-visible{background:#dfeefd;border-color:#87b0d9;color:#123f71}
+@media(max-width:540px){.formato-descarga{justify-content:stretch}.formato-descarga-btn{width:100%}}
