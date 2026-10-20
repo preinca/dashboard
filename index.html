@@ -13,6 +13,7 @@
 <link rel="stylesheet" href="diagramas.css?v=20261015-1">
 <link rel="stylesheet" href="dashboard_extras.css?v=20261019-v15-compact-submit">
 <link rel="stylesheet" href="ptab_ph_ml.css?v=20261016-ml1">
+<link rel="stylesheet" href="ptar_diagrama_interactivo.css?v=20261020-1">
 
 <style id="drive-refresh-critical">
 #drive-refresh-floating{position:fixed!important;right:22px!important;bottom:22px!important;z-index:2147483647!important;display:flex!important;align-items:center!important;gap:7px!important;background:rgba(255,255,255,.93)!important;border:1px solid #D6DFE7!important;border-radius:14px!important;padding:7px!important;box-shadow:0 12px 34px rgba(23,33,43,.13)!important;font-family:Inter,Arial,sans-serif!important;backdrop-filter:blur(14px)!important}
@@ -493,6 +494,9 @@
 
     <!-- ======= PTAR ======= -->
     <section class="view ptar-theme" id="v-ptar" role="tabpanel" aria-labelledby="t-ptar" hidden>
+      <div class="ptar-diag-actions"><button type="button" class="ptar-diag-button" id="ptar-open-diagrama">Visualizar Diagrama</button></div>
+      <div id="ptar-operacion-panel">
+
       <div class="priority-zone mb" id="priority-ptar" aria-live="polite"></div>
       <div class="ptar-date-strip mb">
         <label class="ptar-date-control">Fecha a visualizar
@@ -524,6 +528,19 @@
       </div>
 
       <div class="ptar-process-list" id="ptar-procesos"></div>
+      </div>
+      <div id="ptar-diagrama-panel" hidden>
+        <div class="ptar-diag-header">
+          <div><h3>PTAR · Tratamiento de aguas residuales</h3><p>Coloque el cursor sobre los puntos de colores para consultar las variables del último día con lecturas registrado en Google Drive.</p></div>
+          <div><span class="ptar-diag-date" id="ptar-diagrama-fecha"></span> <button type="button" class="ptar-diag-button" id="ptar-back-operacion">Volver a indicadores</button></div>
+        </div>
+        <div class="ptar-diag-scroll">
+          <div class="ptar-diag-stage" id="ptar-diagrama-stage">
+            <img src="diagramas/vistas/ptar-2026.webp" alt="Diagrama de la planta de tratamiento de aguas residuales con puntos de colores sobre los equipos y procesos">
+            <div class="ptar-diag-tooltip" id="ptar-diagrama-tooltip" role="status" hidden></div>
+          </div>
+        </div>
+      </div>
     </section>
 
     <!-- ======= CONTROL ESTADÍSTICO DE PROCESOS ======= -->
@@ -784,5 +801,6 @@
 <script src="ptab_ph_ml.js?v=20261019-cep1"></script>
 <script src="diagramas.js?v=20261015-1"></script>
 <script src="dashboard_extras.js?v=20261019-v13"></script>
+<script src="ptar_diagrama_interactivo.js?v=20261020-1"></script>
 </body>
 </html>
