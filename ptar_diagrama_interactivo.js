@@ -18,6 +18,8 @@ const normal=document.getElementById('ptar-operacion-panel');
 const btn=document.getElementById('ptar-open-diagrama');
 const back=document.getElementById('ptar-back-operacion');
 const tooltip=document.getElementById('ptar-diagrama-tooltip');
+// El cuadro vive fuera del visor con overflow para que no quede recortado.
+document.body.appendChild(tooltip);
 const badge=document.getElementById('ptar-diagrama-fecha');
 function latestDate(){
  if(typeof PTAR_DATA==='undefined')return null;
@@ -57,11 +59,24 @@ function show(point,button,lock=false){
   tooltip.dataset.current=point.name;
   tooltip.hidden=false;
   if(lock)pinned=true;
-  const stage=root.getBoundingClientRect(),node=button.getBoundingClientRect();
-  const x=node.left-stage.left+node.width/2,y=node.top-stage.top;
-  tooltip.style.left=Math.min(Math.max(x,200),Math.max(200,stage.width-200))+'px';
-  tooltip.style.top=Math.max(10,y-8)+'px';
-  tooltip.classList.toggle('ptar-diag-tooltip-below',y<220);
+  // Posicionar respecto a la ventana, no al diagrama: evita recortes
+  // por el contenedor con overflow y permite desplazar el contenido largo.
+  const node=button.getBoundingClientRect();
+  const margin=12, gap=10;
+  const maxWidth=Math.min(390,window.innerWidth-2*margin);
+  tooltip.style.width=maxWidth+'px';
+  tooltip.style.maxHeight=Math.max(120,window.innerHeight-2*margin)+'px';
+  const box=tooltip.getBoundingClientRect();
+  const x=Math.max(margin,Math.min(node.left+node.width/2-box.width/2,window.innerWidth-box.width-margin));
+  const above=node.top-gap;
+  const below=node.bottom+gap;
+  const placeBelow=above<Math.min(box.height+margin,window.innerHeight*.55)&&window.innerHeight-below>above-margin;
+  const available=placeBelow?window.innerHeight-below-margin:above-margin;
+  tooltip.style.maxHeight=Math.max(100,available)+'px';
+  const actualHeight=Math.min(box.height,Math.max(100,available));
+  tooltip.style.left=x+'px';
+  tooltip.style.top=(placeBelow?below:Math.max(margin,above-actualHeight))+'px';
+  tooltip.classList.remove('ptar-diag-tooltip-below');
 }
 tooltip.addEventListener('mouseenter',cancelHide);
 tooltip.addEventListener('mouseleave',scheduleHide);
