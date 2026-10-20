@@ -1659,3 +1659,6 @@ body.verif-modal-open{overflow:hidden}
 .resumen-desv-rango b{color:var(--ink)}
 
 .supervisor-alerts{display:flex;flex-direction:column;gap:5px;margin:8px 10px 14px}.supervisor-alerts button{cursor:pointer;background:#224d77;color:white;border:0;border-radius:9px;padding:10px;font:inherit;font-size:12px;font-weight:750}.supervisor-alerts button[aria-pressed="true"]{background:#196a54}.supervisor-alerts span{font-size:10px;color:#84919f;line-height:1.4;overflow-wrap:anywhere}
+.supervisor-alerts #supervisor-alert-permission{font-size:11px;background:#345c81}
+.supervisor-alert-toast{position:fixed;right:20px;top:20px;z-index:2147483600;max-width:min(420px,calc(100vw - 40px));background:#fff5ed;color:#712615;border:1px solid #d77851;box-shadow:0 8px 24px #0003;border-radius:12px;padding:15px;font-size:13px;font-weight:700}
+.supervisor-alert-toast[hidden],#supervisor-alert-permission[hidden]{display:none!important}
