@@ -11,9 +11,9 @@
 .ptar-diag-stage{position:relative;min-width:760px;width:100%}
 .ptar-diag-stage>img{display:block;width:100%;height:auto}
 .ptar-diag-point{position:absolute;transform:translate(-50%,-50%);width:24px;height:24px;display:grid;place-items:center;border:0;background:transparent;cursor:pointer;z-index:2;padding:0}
-.ptar-diag-point>span{width:13px;height:13px;background:var(--dot-color);border:2px solid white;box-shadow:0 0 0 2px var(--dot-color),0 1px 6px #5557;border-radius:50%}
+.ptar-diag-point>span{width:13px;height:13px;background:var(--dot-color);border:2px solid white;box-shadow:0 0 0 2px var(--dot-color),0 1px 6px #5557;border-radius:50%;animation:ptar-diag-pulse 2.8s ease-in-out infinite;}
 .ptar-diag-point:hover>span,.ptar-diag-point:focus-visible>span{width:20px;height:20px}
-.ptar-diag-tooltip{position:absolute;transform:translate(-50%,-100%);z-index:9;width:min(390px,65vw);max-height:420px;overflow:auto;background:white;color:#172334;border:1px solid #d4dce5;border-radius:12px;padding:13px 14px;box-shadow:0 12px 35px #152d4850;pointer-events:none}
+.ptar-diag-tooltip{position:absolute;transform:translate(-50%,-100%);z-index:9;width:min(390px,65vw);max-height:420px;overflow:auto;background:white;color:#172334;border:1px solid #d4dce5;border-radius:12px;padding:13px 14px;box-shadow:0 12px 35px #152d4850;pointer-events:auto;overscroll-behavior:contain}
 .ptar-diag-tooltip.ptar-diag-tooltip-below{transform:translate(-50%,0)}
 .ptar-diag-tooltip[hidden]{display:none}
 .ptar-diag-tooltip h4{margin:0;font-size:15px}
@@ -26,3 +26,11 @@
 .ptar-diag-alert{border-left:3px solid #cd2525;padding-left:7px}
 .ptar-diag-alert .ptar-diag-values strong{color:#ba2020}
 .ptar-diag-empty{color:#8794a2;font-style:italic}
+
+/* Pulso lento de señal interactiva; respetar preferencias de movimiento. */
+@keyframes ptar-diag-pulse{
+  0%,100%{opacity:1;box-shadow:0 0 0 2px var(--dot-color),0 0 4px 1px var(--dot-color)}
+  50%{opacity:.48;box-shadow:0 0 0 4px transparent,0 0 14px 5px var(--dot-color)}
+}
+.ptar-diag-point:hover>span,.ptar-diag-point:focus-visible>span{animation-play-state:paused;opacity:1}
+@media(prefers-reduced-motion:reduce){.ptar-diag-point>span{animation:none}}
