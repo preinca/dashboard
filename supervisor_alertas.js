@@ -1,13 +1,21 @@
 /* Alertas para supervisores con el dashboard abierto: seguimiento por Google Drive. */
 (function(){
 'use strict';
-const button=document.getElementById('supervisor-alert-toggle');
 const indicator=document.getElementById('supervisor-alert-status');
-if(!button||!indicator)return;
-const KEY='preinca-supervisor-alerts-v1',SEEN='preinca-supervisor-alerts-seen-v1';
-let enabled=localStorage.getItem(KEY)==='1',busy=false,initialized=false,seen=new Set();
-try{seen=new Set(JSON.parse(sessionStorage.getItem(SEEN)||'[]'));initialized=seen.size>0;}catch(_){}
-function ui(msg){button.textContent=enabled?'Desactivar alertas':'Activar alertas';button.setAttribute('aria-pressed',String(enabled));indicator.textContent=msg||(enabled?'Alertas activas':'Alertas desactivadas');}
+const permissionLink=document.getElementById('supervisor-alert-permission');
+const toast=document.getElementById('supervisor-alert-toast');
+if(!indicator)return;
+const SEEN='preinca-supervisor-alerts-seen-v2';
+let busy=false,initialized=false,seen=new Set();
+try{seen=new Set(JSON.parse(localStorage.getItem(SEEN)||'[]'));initialized=seen.size>0;}catch(_){}
+function ui(msg){indicator.textContent=msg||'Vigilancia de desviaciones activa';if(permissionLink)permissionLink.hidden=!("Notification" in window && Notification.permission==='default');}
+function showToast(msg){
+ if(!toast)return;
+ toast.textContent='⚠ Nueva desviación: '+msg;
+ toast.hidden=false;
+ clearTimeout(showToast.timer);
+ showToast.timer=setTimeout(()=>{toast.hidden=true;},16000);
+}
 const schemas=[
  {key:'PTAB',normalize:'normalizarFilasPtabr',state:'estadoRegistroPtabr',label:'PTAB'},
  {key:'PTAR',normalize:'normalizarFilasPTAR',state:'estadoRegistroPTAR',label:'PTAR'},
@@ -43,7 +51,7 @@ function alerts(data){
  return found;
 }
 async function check(){
- if(!enabled||busy||document.hidden)return;
+ if(busy)return;
  busy=true;
  try{
   if(typeof dashDriveRead!=='function')throw Error('Lectura Drive no disponible');
@@ -57,6 +65,7 @@ async function check(){
    if(updates.length){
     const first=updates[0];
     const msg=first.area+' · '+first.variable+': '+first.valor+(updates.length>1?' (+ '+(updates.length-1)+' adicionales)':'');
+    showToast(msg);
     if('Notification' in window && Notification.permission==='granted'){
       const n=new Notification('Desviación detectada · Servicios a Planta',{body:msg,tag:'preinca-desviacion-'+Date.now()});
       n.onclick=()=>{window.focus();n.close();};
@@ -65,18 +74,20 @@ async function check(){
    }else ui('Sin nuevas desviaciones');
   }
   // Conservar IDs vistos durante la sesión para evitar avisos repetidos.
-  const arr=[...seen].slice(-12000);seen=new Set(arr);sessionStorage.setItem(SEEN,JSON.stringify(arr));
+  const arr=[...seen].slice(-12000);seen=new Set(arr);localStorage.setItem(SEEN,JSON.stringify(arr));
  }catch(e){console.warn('Supervisor: revisión de alertas',e);ui('No se pudo comprobar Drive; se reintentará');}
  finally{busy=false;}
 }
-button.addEventListener('click',async()=>{
- if(enabled){enabled=false;localStorage.removeItem(KEY);ui();return;}
- if(!('Notification' in window)){ui('Este navegador no admite notificaciones');return;}
- if(!window.isSecureContext){ui('Se requiere HTTPS para notificaciones');return;}
- const permission=await Notification.requestPermission();
- if(permission!=='granted'){ui('Permiso de notificaciones no concedido');return;}
- enabled=true;localStorage.setItem(KEY,'1');ui('Activando supervisión…');check();
+if(permissionLink)permissionLink.addEventListener('click',async()=>{
+ if(!('Notification' in window)){ui('El navegador no permite notificaciones del sistema');return;}
+ try{
+  const result=await Notification.requestPermission();
+  ui(result==='granted'?'Notificaciones del navegador permitidas':'Las alertas siguen visibles dentro del dashboard');
+ }catch(e){ui('Las alertas siguen visibles dentro del dashboard');}
 });
-ui();if(enabled)check();
+ui();
+check();
+window.addEventListener('focus',check);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)check();});
 setInterval(check,60000);
 })();
