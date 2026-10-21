@@ -58,8 +58,8 @@ async function check(){
   const ans=await dashDriveRead({action:'read_master'},30000);
   if(!ans?.ok)throw Error('No se pudo consultar la Base Maestra');
   const current=alerts(ans.data||{});
-  if(!initialized){initialized=true;ui('Supervisando desviaciones registradas');}
-  else{
+  if(!initialized){initialized=true;}
+  {
    const updates=current.filter(x=>!seen.has(x.id));
    updates.forEach(x=>seen.add(x.id));
    if(updates.length){
