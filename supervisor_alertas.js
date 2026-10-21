@@ -5,7 +5,7 @@ const indicator=document.getElementById('supervisor-alert-status');
 const permissionLink=document.getElementById('supervisor-alert-permission');
 const toast=document.getElementById('supervisor-alert-toast');
 if(!indicator)return;
-const SEEN='preinca-supervisor-alerts-seen-v2';
+const SEEN='preinca-supervisor-alerts-seen-v3';
 let busy=false,initialized=false,seen=new Set();
 try{seen=new Set(JSON.parse(localStorage.getItem(SEEN)||'[]'));initialized=seen.size>0;}catch(_){}
 function ui(msg){indicator.textContent=msg||'Vigilancia de desviaciones activa';if(permissionLink)permissionLink.hidden=!("Notification" in window && Notification.permission==='default');}
@@ -58,7 +58,7 @@ async function check(){
   const ans=await dashDriveRead({action:'read_master'},30000);
   if(!ans?.ok)throw Error('No se pudo consultar la Base Maestra');
   const current=alerts(ans.data||{});
-  if(!initialized){current.forEach(x=>seen.add(x.id));initialized=true;ui('Supervisando nuevas desviaciones');}
+  if(!initialized){initialized=true;ui('Supervisando desviaciones registradas');}
   else{
    const updates=current.filter(x=>!seen.has(x.id));
    updates.forEach(x=>seen.add(x.id));
@@ -67,8 +67,8 @@ async function check(){
     const msg=first.area+' · '+first.variable+': '+first.valor+(updates.length>1?' (+ '+(updates.length-1)+' adicionales)':'');
     showToast(msg);
     if('Notification' in window && Notification.permission==='granted'){
-      const n=new Notification('Desviación detectada · Servicios a Planta',{body:msg,tag:'preinca-desviacion-'+Date.now()});
-      n.onclick=()=>{window.focus();n.close();};
+      try{const n=new Notification('Desviación detectada · Servicios a Planta',{body:msg,tag:'preinca-desviacion-'+Date.now()});n.onclick=()=>{window.focus();n.close();};}
+      catch(e){console.warn('Aviso del sistema no disponible',e);}
     }
     indicator.textContent=updates.length+' nueva(s) desviación(es). '+msg;
    }else ui('Sin nuevas desviaciones');
@@ -88,6 +88,7 @@ if(permissionLink)permissionLink.addEventListener('click',async()=>{
 ui();
 check();
 window.addEventListener('focus',check);
+window.addEventListener('preinca:drive-actualizado',()=>{setTimeout(check,250);});
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)check();});
 setInterval(check,60000);
 })();
