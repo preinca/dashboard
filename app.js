@@ -3420,6 +3420,7 @@ async function dashDriveAppend(area,norm,label){
   if(sincronizado){
     dashDriveRefreshStatus('Drive sincronizado','ok');
     const added=ans&&Number.isFinite(Number(ans.added))?Number(ans.added):norm.length;
+    window.dispatchEvent(new Event('preinca:drive-actualizado'));
     alert(`${label}: información guardada en Drive y dashboard sincronizado.${fechaNueva?` Fecha visible: ${fechaNueva}.`:''}`);
     return;
   }
@@ -4063,7 +4064,7 @@ async function dashDriveAppendWA(rows,catalogo,label='Sala de Compresores'){
     try{const ra=await dashDriveRead({action:'read_master'});dashDriveApplyMasterData(ra);ok=Array.isArray(ra&&ra.data&&ra.data.COMPRESORES_REFRIGERACION);if(ok)ans=ans||ra;}catch(e){last=e;}
   }
   ['aire','frio'].forEach(a=>{const c=waCfg(a);if(focusDate&&c&&c.data.some(r=>r.fecha===focusDate))dashDriveFocusDate(a,focusDate);});
-  if(ok){dashDriveRefreshStatus('Drive sincronizado','ok');alert(`${label}: información guardada en Drive y dashboard sincronizado.${focusDate?` Fecha visible: ${focusDate}.`:''}`);return;}
+  if(ok){dashDriveRefreshStatus('Drive sincronizado','ok');window.dispatchEvent(new Event('preinca:drive-actualizado'));alert(`${label}: información guardada en Drive y dashboard sincronizado.${focusDate?` Fecha visible: ${focusDate}.`:''}`);return;}
   dashDriveRefreshStatus('Pendiente de confirmar Drive','error');const e=last||postError;alert(`${label}: los datos quedan visibles localmente, pero no se pudo confirmar la lectura de Drive.${e?` Detalle: ${e.message||e}`:''}`);
 }
 
@@ -4714,7 +4715,7 @@ dashDriveAppendWA=async function(rows,catalogo,label='Sala de Compresores'){
   }
   ['aire','frio'].forEach(a=>{const c=waCfg(a);if(focusDate&&c&&c.data.some(r=>r.fecha===focusDate))dashDriveFocusDate(a,focusDate);});
   try{dashSalaSetFecha(focusDate||dashSalaFechaActual());dashSalaRenderUnificado();}catch(e){}
-  if(ok){dashDriveRefreshStatus('Drive sincronizado','ok');alert(`${label}: información guardada en Drive y dashboard sincronizado.${focusDate?` Fecha visible: ${focusDate}.`:''}`);return;}
+  if(ok){dashDriveRefreshStatus('Drive sincronizado','ok');window.dispatchEvent(new Event('preinca:drive-actualizado'));alert(`${label}: información guardada en Drive y dashboard sincronizado.${focusDate?` Fecha visible: ${focusDate}.`:''}`);return;}
 
   let health=null;
   try{health=await dashDriveRead({action:'health'},18000);}catch(e){}
