@@ -3392,6 +3392,27 @@ function dashDriveApplyImportedLocally(area,norm,fecha){
   dashDriveFocusDate(area,fecha);
 }
 function dashDriveSleep(ms){return new Promise(resolve=>setTimeout(resolve,ms));}
+/* Aviso de desviaciones únicamente después de confirmar escritura en Drive. */
+function dashAlertasCargaConfirmada(area,rows,label){
+  const checks={
+    ptab:r=>estadoRegistroPtabr(r),
+    ptar:r=>estadoRegistroPTAR(r),
+    vapor:r=>estadoRegistroVapor(r),
+    suav:r=>estadoRegistroSuav(r)
+  };
+  const isBad=checks[area];
+  if(!isBad)return;
+  const desviadas=(rows||[]).filter(r=>r&&isBad(r)==='FUERA DE RANGO');
+  if(!desviadas.length)return;
+  const lines=desviadas.slice(0,12).map(r=>
+    '• '+(r.puesto||r.proceso||'')+' · '+(r.variable||r.id)+': '+String(r.valor??'—')+
+    (r.unidad?' '+r.unidad:'')+' (rango: '+(r.rango||'No establecido')+')'
+  );
+  const extra=desviadas.length>12?'\n... y '+(desviadas.length-12)+' desviaciones adicionales.':'';
+  alert('⚠ ALERTA DE DESVIACIONES — '+label+'\n\n'+
+    'Se guardó el formato en Google Drive y se detectaron '+desviadas.length+
+    ' lectura(s) fuera de rango:\n\n'+lines.join('\n')+extra);
+}
 async function dashDriveAppend(area,norm,label){
   const key=dashDriveWriteKey(); if(!key) throw new Error('No se ingresó la clave de actualización.');
   const fechaNueva=dashDriveLatestDate(norm);
@@ -3422,6 +3443,7 @@ async function dashDriveAppend(area,norm,label){
     const added=ans&&Number.isFinite(Number(ans.added))?Number(ans.added):norm.length;
     window.dispatchEvent(new Event('preinca:drive-actualizado'));
     alert(`${label}: información guardada en Drive y dashboard sincronizado.${fechaNueva?` Fecha visible: ${fechaNueva}.`:''}`);
+    dashAlertasCargaConfirmada(area,norm,label);
     return;
   }
 
@@ -4064,7 +4086,7 @@ async function dashDriveAppendWA(rows,catalogo,label='Sala de Compresores'){
     try{const ra=await dashDriveRead({action:'read_master'});dashDriveApplyMasterData(ra);ok=Array.isArray(ra&&ra.data&&ra.data.COMPRESORES_REFRIGERACION);if(ok)ans=ans||ra;}catch(e){last=e;}
   }
   ['aire','frio'].forEach(a=>{const c=waCfg(a);if(focusDate&&c&&c.data.some(r=>r.fecha===focusDate))dashDriveFocusDate(a,focusDate);});
-  if(ok){dashDriveRefreshStatus('Drive sincronizado','ok');window.dispatchEvent(new Event('preinca:drive-actualizado'));alert(`${label}: información guardada en Drive y dashboard sincronizado.${focusDate?` Fecha visible: ${focusDate}.`:''}`);return;}
+  if(ok){dashDriveRefreshStatus('Drive sincronizado','ok');window.dispatchEvent(new Event('preinca:drive-actualizado'));alert(`${label}: información guardada en Drive y dashboard sincronizado.${focusDate?` Fecha visible: ${focusDate}.`:''}`);const bad=enriched.filter(r=>waEstadoClase(r)==='crit'||waEstadoClase(r)==='warn');if(bad.length)alert('⚠ ALERTA DE DESVIACIONES — '+label+'\\n\\n'+bad.length+' lectura(s) fuera de norma o en alerta.\\n\\n'+bad.slice(0,12).map(r=>'• '+(r.equipo||'')+' · '+(r.variable||r.id)+': '+String(r.valor??r.texto??'—')).join('\\n'));return;}
   dashDriveRefreshStatus('Pendiente de confirmar Drive','error');const e=last||postError;alert(`${label}: los datos quedan visibles localmente, pero no se pudo confirmar la lectura de Drive.${e?` Detalle: ${e.message||e}`:''}`);
 }
 
