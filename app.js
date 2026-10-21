@@ -3413,6 +3413,22 @@ function dashAlertasCargaConfirmada(area,rows,label){
     'Se guardó el formato en Google Drive y se detectaron '+desviadas.length+
     ' lectura(s) fuera de rango:\n\n'+lines.join('\n')+extra);
 }
+function dashDriveErrorClave(err){
+  return /clave.*incorrecta|contraseña.*incorrecta|autorizaci[oó]n|unauthori[sz]ed|\bauth\b/i.test(String(err&&err.message||err||''));
+}
+function dashDriveOlvidarClave(){
+  try{sessionStorage.removeItem('polar_drive_write_key');}catch(e){}
+}
+function dashDriveConfirmarFilas(area,raw,submitted){
+  if(!Array.isArray(raw)||!submitted.length)return false;
+  const normalizers={ptab:normalizarFilasPtabr,ptar:normalizarFilasPTAR,suav:normalizarFilasSuav,vapor:normalizarFilasVapor};
+  const parse=normalizers[area];if(!parse)return false;
+  const saved=parse(raw);
+  const key=r=>[r.fecha,r.turno,r.id,String(r.valor??'').trim()].join('|');
+  const savedKeys=new Set(saved.map(key));
+  const actual=submitted.filter(r=>r&&r.id&&r.fecha&&r.valor!==null&&r.valor!==undefined&&String(r.valor).trim()!=='');
+  return actual.length>0&&actual.every(r=>savedKeys.has(key(r)));
+}
 async function dashDriveAppend(area,norm,label){
   const key=dashDriveWriteKey(); if(!key) throw new Error('No se ingresó la clave de actualización.');
   const fechaNueva=dashDriveLatestDate(norm);
@@ -3424,19 +3440,23 @@ async function dashDriveAppend(area,norm,label){
      éxito de la lectura del POST como única confirmación. */
   try{ans=await dashDriveRequest(payload);}catch(err){postError=err;console.warn('POST enviado; la respuesta no pudo leerse. Se confirmará por JSONP.',err);}
 
-  if(ans&&ans.data) dashDriveApplyMasterData(ans,area,fechaNueva);
-  else dashDriveApplyImportedLocally(area,norm,fechaNueva);
+  if(postError&&dashDriveErrorClave(postError)){
+    dashDriveOlvidarClave();
+    dashDriveRefreshStatus('Error: clave incorrecta','error');
+    throw new Error('Contraseña incorrecta. No se guardó la planilla en Google Drive. Vuelve a cargar el archivo e ingresa la clave correcta.');
+  }
 
   let sincronizado=false,lastReadError=null;
   for(let intento=0;intento<6&&!sincronizado;intento++){
     if(intento)await dashDriveSleep(700*intento);
     try{
       const readAns=await dashDriveRead({action:'read_master'});
-      sincronizado=dashDriveApplyMasterData(readAns,area,fechaNueva);
-      if(sincronizado){ans=ans||readAns;break;}
+      const sheet={ptab:'PTAB',ptar:'PTAR',suav:'SUAVIZADORES',vapor:'VAPOR'}[area];
+      sincronizado=dashDriveConfirmarFilas(area,readAns.data&&readAns.data[sheet],norm);
+      if(sincronizado){dashDriveApplyMasterData(readAns,area,fechaNueva);ans=ans||readAns;break;}
     }catch(err){lastReadError=err;console.warn('Reintento Drive '+(intento+1),err);}
   }
-  dashDriveFocusDate(area,fechaNueva);
+  if(sincronizado)dashDriveFocusDate(area,fechaNueva);
 
   if(sincronizado){
     dashDriveRefreshStatus('Drive sincronizado','ok');
@@ -3447,9 +3467,9 @@ async function dashDriveAppend(area,norm,label){
     return;
   }
 
-  dashDriveRefreshStatus('Pendiente de confirmar Drive','error');
-  const detalle=(lastReadError||postError); 
-  alert(`${label}: la planilla fue enviada y se mantiene visible localmente, pero el navegador no logró volver a leer Drive.${detalle?` Detalle: ${detalle.message||detalle}`:''}`);
+  dashDriveRefreshStatus('Carga no confirmada en Google Drive','error');
+  throw new Error('No se pudo confirmar que la planilla se haya guardado en Google Drive. No se incorporaron datos provisionales. Verifica la contraseña y vuelve a intentarlo.'+
+    (postError?' Detalle: '+postError.message:''));
 }
 
 cargarExcelPtabrArchivo=async function(file){try{const rows=await leerExcelPtabr(await file.arrayBuffer()),norm=normalizarFilasPtabr(rows);await dashDriveAppend('ptab',norm,'PTAB');}catch(e){alert('PTAB: '+e.message);throw e;}};
@@ -4070,6 +4090,12 @@ function dashWAMergeLocal(tab,incoming,catalogo,source){
   (catalogo||[]).filter(v=>c.areasPermitidas.includes(v.area)).forEach(v=>{const i=cat.findIndex(x=>x.id===v.id);if(i<0)cat.push(v);else cat[i]=Object.assign({},cat[i],v);});
   cargarWA(tab,m.rows,cat,[],source);dashSave(tab,m.rows);
 }
+function dashDriveConfirmarWA(raw,rows){
+ if(!Array.isArray(raw)||!rows.length)return false;
+ const all=JSON.stringify(raw);
+ const representative=rows.filter(r=>r&&r.fecha&&r.id).slice(0,5);
+ return representative.length>0&&representative.every(r=>all.includes(r.fecha)&&all.includes(r.id));
+}
 async function dashDriveAppendWA(rows,catalogo,label='Sala de Compresores'){
   if(!rows||!rows.length)throw new Error('La planilla no contiene datos válidos para Compresores/Refrigeración.');
   const key=dashDriveWriteKey();if(!key)throw new Error('No se ingresó la clave de actualización.');
@@ -4077,17 +4103,16 @@ async function dashDriveAppendWA(rows,catalogo,label='Sala de Compresores'){
   const fechas=[...new Set(enriched.map(r=>r.fecha).filter(Boolean))].sort(),focusDate=fechas[fechas.length-1]||null;
   let ans=null,postError=null;
   try{ans=await dashDriveRequest({action:'append_rows',key,area:'wa',rows:dashDriveRows('wa',enriched)});}catch(e){postError=e;console.warn('POST WA enviado; se confirmará por lectura.',e);}
-  dashWAMergeLocal('aire',enriched,catalogo,'Carga operador · pendiente de confirmar Drive');
-  dashWAMergeLocal('frio',enriched,catalogo,'Carga operador · pendiente de confirmar Drive');
+  if(postError&&dashDriveErrorClave(postError)){dashDriveOlvidarClave();dashDriveRefreshStatus('Error: clave incorrecta','error');throw new Error('Contraseña incorrecta. No se guardó la planilla en Drive.');}
   if(ans&&ans.data)dashDriveApplyMasterData(ans);
-  let ok=!!(ans&&ans.data&&Array.isArray(ans.data.COMPRESORES_REFRIGERACION)),last=null;
+  let ok=!!(ans&&ans.data&&dashDriveConfirmarWA(ans.data.COMPRESORES_REFRIGERACION,enriched)),last=null;
   for(let i=0;i<5&&!ok;i++){
     if(i)await dashDriveSleep(650*i);
-    try{const ra=await dashDriveRead({action:'read_master'});dashDriveApplyMasterData(ra);ok=Array.isArray(ra&&ra.data&&ra.data.COMPRESORES_REFRIGERACION);if(ok)ans=ans||ra;}catch(e){last=e;}
+    try{const ra=await dashDriveRead({action:'read_master'});dashDriveApplyMasterData(ra);ok=Array.isArray(ra&&ra.data&&ra.data.COMPRESORES_REFRIGERACION)&&dashDriveConfirmarWA(ra.data.COMPRESORES_REFRIGERACION,enriched);if(ok)ans=ans||ra;}catch(e){last=e;}
   }
   ['aire','frio'].forEach(a=>{const c=waCfg(a);if(focusDate&&c&&c.data.some(r=>r.fecha===focusDate))dashDriveFocusDate(a,focusDate);});
   if(ok){dashDriveRefreshStatus('Drive sincronizado','ok');window.dispatchEvent(new Event('preinca:drive-actualizado'));alert(`${label}: información guardada en Drive y dashboard sincronizado.${focusDate?` Fecha visible: ${focusDate}.`:''}`);const bad=enriched.filter(r=>waEstadoClase(r)==='crit'||waEstadoClase(r)==='warn');if(bad.length)alert('⚠ ALERTA DE DESVIACIONES — '+label+'\\n\\n'+bad.length+' lectura(s) fuera de norma o en alerta.\\n\\n'+bad.slice(0,12).map(r=>'• '+(r.equipo||'')+' · '+(r.variable||r.id)+': '+String(r.valor??r.texto??'—')).join('\\n'));return;}
-  dashDriveRefreshStatus('Pendiente de confirmar Drive','error');const e=last||postError;alert(`${label}: los datos quedan visibles localmente, pero no se pudo confirmar la lectura de Drive.${e?` Detalle: ${e.message||e}`:''}`);
+  dashDriveRefreshStatus('Carga no confirmada','error');throw new Error('No se pudo confirmar el guardado en Drive. Comprueba la contraseña y vuelve a cargar la planilla.');
 }
 
 /* ---------- Parser de la planilla Sala de Compresores (Hoja1) ---------- */
