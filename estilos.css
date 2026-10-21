@@ -1670,5 +1670,6 @@ body.verif-modal-open{overflow:hidden}
 
 /* Centrado vertical del conjunto de tarjetas en el espacio disponible del Resumen. */
 #v-resumen{display:flex;flex-direction:column;min-height:calc(100dvh - 76px)}
+#v-resumen[hidden]{display:none}
 #v-resumen .resumen-desv-grid{flex:1;align-content:center;align-items:start}
 @media(max-width:900px){#v-resumen{min-height:calc(100dvh - 110px)}}
