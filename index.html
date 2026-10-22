@@ -561,7 +561,7 @@
       </div>
       <div class="card mb">
         <div class="card-h"><h3>PTAB · Aguas Blancas</h3></div>
-        <div class="card-b"><div class="cep-ml-toolbar"><label for="cep-ml-filter">Visualizar predicciones</label><select id="cep-ml-filter" aria-label="Filtrar variables de predicción"><option value="all">Todas las variables</option><option value="ph">pH · Tanque Subterráneo</option><option value="presion">Presión (psi) · Pozo 2</option><option value="caudal">Caudal (L/s) · Pozo 2</option><option value="none">Ninguna</option></select></div><div id="cep-ptab-predictions"></div></div>
+        <div class="card-b"><div class="cep-ml-toolbar"><label for="cep-ml-filter">Visualizar predicciones</label><select id="cep-ml-filter" aria-label="Filtrar variables de predicción"><option value="all">Todas las variables</option><option value="ph">pH · Tanque Subterráneo</option><option value="presion">Presión (psi) · Pozo 2</option><option value="caudal">Caudal (L/s) · Pozo 2</option><option value="pozo3-caudal">Caudal (L/s) · Pozo #3</option><option value="tanque-nivel">Nivel TQ (%) · Tanque Subterráneo</option><option value="tanque-tds">TDS (mg/L) · Tanque Subterráneo</option><option value="tanque-turbidez">Turbidez (NTU) · Tanque Subterráneo</option><option value="none">Ninguna</option></select></div><div id="cep-ptab-predictions"></div></div>
       </div>
     </section>
 
@@ -809,6 +809,7 @@
 <script src="ptab_ph_ml_model.js?v=20261016-ml1"></script>
 <script src="ptab_ph_ml.js?v=20261022-cep-clean3"></script>
 <script src="ptab_pozo2_ml.js?v=20261022-cep-clean3"></script>
+<script src="ptab_variables_adicionales_ml.js?v=20261022-1"></script>
 <script>
 (function(){
   const filter=document.getElementById('cep-ml-filter');
