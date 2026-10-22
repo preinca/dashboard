@@ -153,13 +153,13 @@ for(const cfg of CONFIG){
  let lastSignature='';
  renders.push(function render(){
   const rows=daily(cfg.id),status=card.querySelector('.ptab-ml-state'),kpis=card.querySelector('.ptab-ml-kpis'),chart=card.querySelector('.ptab-ml-chart');
-  if(rows.length<15){status.innerHTML='<span class="ptab-ml-state-chip warn">Histórico insuficiente</span><span>Hay '+rows.length+' días con medición. Se necesitan al menos 15 días y pares de fechas verificables para entrenar y validar pronósticos.</span>';kpis.innerHTML=rows.length?'<article class="ptab-ml-kpi"><span>Último valor real</span><strong>'+fmt(rows[rows.length-1].valor)+' <small>'+cfg.unit+'</small></strong><small>'+datestr(rows[rows.length-1].fecha)+'</small></article>':'';if(cfg.range)kpis.innerHTML+='<article class="ptab-ml-kpi neutral"><span>Rango operativo</span><strong>'+cfg.range.display.replace("<","&lt;")+'</strong><small>'+cfg.range.unit+'</small></article>';chart.innerHTML='<div class="ptab-ml-empty">Predicción no disponible por falta de histórico validable.</div>';return;}
+  if(rows.length<15 && cfg.id!=='ptab_19'){status.innerHTML='<span class="ptab-ml-state-chip warn">Histórico insuficiente</span><span>Hay '+rows.length+' días con medición. Se necesitan al menos 15 días y pares de fechas verificables para entrenar y validar pronósticos.</span>';kpis.innerHTML=rows.length?'<article class="ptab-ml-kpi"><span>Último valor real</span><strong>'+fmt(rows[rows.length-1].valor)+' <small>'+cfg.unit+'</small></strong><small>'+datestr(rows[rows.length-1].fecha)+'</small></article>':'';if(cfg.range)kpis.innerHTML+='<article class="ptab-ml-kpi neutral"><span>Rango operativo</span><strong>'+cfg.range.display.replace("<","&lt;")+'</strong><small>'+cfg.range.unit+'</small></article>';chart.innerHTML='<div class="ptab-ml-empty">Predicción no disponible por falta de histórico validable.</div>';return;}
   const signature=rows.map(r=>r.fecha+':'+r.valor).join('|');
   if(signature===lastSignature)return;lastSignature=signature;
   const one=train(rows,1),week=train(rows,7),last=rows[rows.length-1],fv=features(rows,rows.length-1);
   const p1=Math.max(0,one.predict(fv)),p7=Math.max(0,week.predict(fv));
   const mae=t=>t.mae===null?'Validación insuficiente':'MAE de validación: '+fmt(t.mae)+' '+cfg.unit;
-  status.innerHTML='<span class="ptab-ml-state-chip ok">Estimación disponible</span><span>Último dato disponible: '+datestr(last.fecha)+' · '+rows.length+' días con medición.</span>';
+  status.innerHTML=cfg.id==='ptab_19'?'<span class="ptab-ml-state-chip warn">Estimación experimental</span><span>Histórico limitado: '+rows.length+' días con medición. Se usa el último valor real como referencia para +1 y +7 días; no hay validación fiable.</span>':'<span class="ptab-ml-state-chip ok">Estimación disponible</span><span>Último dato disponible: '+datestr(last.fecha)+' · '+rows.length+' días con medición.</span>';
   function box(label,val,detail,metric){
    return '<article class="ptab-ml-kpi'+(metric?' ok':'')+'"><span>'+label+'</span><strong>'+fmt(val)+' <small>'+cfg.unit+'</small></strong><small>'+detail+'</small>'+(metric?'<em>'+mae(metric)+'</em>':'')+'</article>';
   }
