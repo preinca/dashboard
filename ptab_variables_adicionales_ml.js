@@ -7,7 +7,9 @@ const CONFIG=[
  {id:'ptab_08',key:'pozo3-caudal',name:'Caudal',unit:'L/s',place:'Pozo #3'},
  {id:'ptab_13',key:'tanque-nivel',name:'Nivel TQ',unit:'%',place:'Tanque Subterráneo'},
  {id:'ptab_15',key:'tanque-tds',name:'TDS',unit:'mg/L',place:'Tanque Subterráneo'},
- {id:'ptab_16',key:'tanque-turbidez',name:'Turbidez',unit:'NTU',place:'Tanque Subterráneo',range:{display:'< 10',unit:'NTU'}}
+ {id:'ptab_16',key:'tanque-turbidez',name:'Turbidez',unit:'NTU',place:'Tanque Subterráneo',range:{display:'< 10',unit:'NTU'}},
+ {id:'ptab_19',key:'tanque-dureza',name:'Dureza Total',unit:'mg/L',place:'Tanque Subterráneo',range:{display:'< 500',unit:'mg/L'}},
+ {id:'ptab_20',key:'tanque-hierro',name:'Hierro',unit:'mg/L',place:'Tanque Subterráneo',range:{display:'< 8,0',unit:'mg/L'}}
 ];
 const DAY=86400000,fmt=(n,d=2)=>Number.isFinite(n)?n.toLocaleString('es-VE',{minimumFractionDigits:d,maximumFractionDigits:d}):'—';
 function dateValue(d){return Date.parse(d+'T00:00:00Z');}
@@ -151,7 +153,7 @@ for(const cfg of CONFIG){
  let lastSignature='';
  renders.push(function render(){
   const rows=daily(cfg.id),status=card.querySelector('.ptab-ml-state'),kpis=card.querySelector('.ptab-ml-kpis'),chart=card.querySelector('.ptab-ml-chart');
-  if(rows.length<15){status.innerHTML='<span class="ptab-ml-state-chip warn">Histórico insuficiente</span><span>Se necesitan más mediciones para estimar la variable.</span>';kpis.innerHTML='';chart.innerHTML='';return;}
+  if(rows.length<15){status.innerHTML='<span class="ptab-ml-state-chip warn">Histórico insuficiente</span><span>Hay '+rows.length+' días con medición. Se necesitan al menos 15 días y pares de fechas verificables para entrenar y validar pronósticos.</span>';kpis.innerHTML=rows.length?'<article class="ptab-ml-kpi"><span>Último valor real</span><strong>'+fmt(rows[rows.length-1].valor)+' <small>'+cfg.unit+'</small></strong><small>'+datestr(rows[rows.length-1].fecha)+'</small></article>':'';if(cfg.range)kpis.innerHTML+='<article class="ptab-ml-kpi neutral"><span>Rango operativo</span><strong>'+cfg.range.display.replace("<","&lt;")+'</strong><small>'+cfg.range.unit+'</small></article>';chart.innerHTML='<div class="ptab-ml-empty">Predicción no disponible por falta de histórico validable.</div>';return;}
   const signature=rows.map(r=>r.fecha+':'+r.valor).join('|');
   if(signature===lastSignature)return;lastSignature=signature;
   const one=train(rows,1),week=train(rows,7),last=rows[rows.length-1],fv=features(rows,rows.length-1);
@@ -161,7 +163,7 @@ for(const cfg of CONFIG){
   function box(label,val,detail,metric){
    return '<article class="ptab-ml-kpi'+(metric?' ok':'')+'"><span>'+label+'</span><strong>'+fmt(val)+' <small>'+cfg.unit+'</small></strong><small>'+detail+'</small>'+(metric?'<em>'+mae(metric)+'</em>':'')+'</article>';
   }
-  kpis.innerHTML=box('Último valor real',last.valor,datestr(last.fecha))+box('Predicción día siguiente',p1,datestr(future(last.fecha,1)),one)+box('Predicción a 7 días',p7,datestr(future(last.fecha,7)),week)+(cfg.range?'<article class="ptab-ml-kpi neutral"><span>Rango operativo</span><strong>&lt; 10</strong><small>'+cfg.range.unit+'</small><em>La predicción no sustituye la lectura real.</em></article>':'');
+  kpis.innerHTML=box('Último valor real',last.valor,datestr(last.fecha))+box('Predicción día siguiente',p1,datestr(future(last.fecha,1)),one)+box('Predicción a 7 días',p7,datestr(future(last.fecha,7)),week)+(cfg.range?'<article class="ptab-ml-kpi neutral"><span>Rango operativo</span><strong>'+cfg.range.display.replace('<','&lt;')+'</strong><small>'+cfg.range.unit+'</small><em>La predicción no sustituye la lectura real.</em></article>':'');
   renderChart(chart,rows,p1,p7,last.fecha);
  });
 }
