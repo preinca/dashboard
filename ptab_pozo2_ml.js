@@ -84,19 +84,17 @@ function escapeText(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':
   }
 
 function install(cfg){
- const card=document.createElement('section');card.className='card ptab-ml-card mb';card.id='cep-model-'+cfg.id;
- card.innerHTML='<div class="ptab-ml-head"><div><span class="ptab-ml-kicker">PREDICCIÓN EXPERIMENTAL · SERIE TEMPORAL</span><h3>'+cfg.label+'</h3><p>Histórico de Agua cruda · Pozo #2. Valores promedio de las lecturas diarias disponibles.</p></div><label class="ptab-ml-toggle"><input type="checkbox" role="switch" aria-label="Mostrar predicción de '+cfg.name+'"><span class="ptab-ml-toggle-ui" aria-hidden="true"></span><span class="ptab-ml-toggle-text">Mostrar predicción</span></label></div><div class="ptab-ml-body" hidden><div class="ptab-ml-state"></div><div class="ptab-ml-kpis"></div><div class="ptab-ml-chart-wrap"><div class="ptab-ml-chart-head"><div><strong>Histórico reciente y proyección</strong><span>Promedio diario de las lecturas disponibles</span></div><span class="ptab-ml-model-chip">Ensamble SVR · RBF</span></div><div class="ptab-ml-chart"></div></div><div class="ptab-ml-foot"></div></div>';
- HOST.appendChild(card);const toggle=card.querySelector('input'),body=card.querySelector('.ptab-ml-body');try{toggle.checked=localStorage.getItem('preinca_ml_'+cfg.id)==='1';}catch(e){}
- function render(){body.hidden=!toggle.checked;card.classList.toggle('is-enabled',toggle.checked);if(!toggle.checked)return;const rows=daily(cfg.id),state=card.querySelector('.ptab-ml-state'),k=card.querySelector('.ptab-ml-kpis'),chart=card.querySelector('.ptab-ml-chart'),foot=card.querySelector('.ptab-ml-foot');
- if(rows.length<14){state.textContent='Histórico insuficiente: se necesitan al menos 14 días con mediciones.';k.innerHTML='';chart.innerHTML='';foot.textContent='';return;}
+ const card=document.createElement('section');card.className='card ptab-ml-card cep-ml-card mb';card.id='cep-model-'+cfg.id;card.dataset.mlId=cfg.id==='ptab_01'?'presion':'caudal';
+ card.innerHTML='<div class="ptab-ml-head"><div><span class="ptab-ml-kicker">PREDICCIÓN DE VARIABLES CON IA</span><h3>Predicción de '+cfg.name+' ('+cfg.unit+') · PTAB · Agua cruda · Pozo 2</h3><p>Histórico de Agua cruda · Pozo #2. Valores promedio de las lecturas diarias disponibles.</p></div></div><div class="ptab-ml-body"><div class="ptab-ml-state"></div><div class="ptab-ml-kpis"></div><div class="ptab-ml-chart-wrap"><div class="ptab-ml-chart-head"><div><strong>Histórico reciente y proyección</strong><span>Promedio diario de las lecturas disponibles</span></div></div><div class="ptab-ml-chart"></div></div></div>';
+ HOST.appendChild(card); function render(){card.classList.add('is-enabled');const rows=daily(cfg.id),state=card.querySelector('.ptab-ml-state'),k=card.querySelector('.ptab-ml-kpis'),chart=card.querySelector('.ptab-ml-chart');
+ if(rows.length<14){state.textContent='Histórico insuficiente: se necesitan al menos 14 días con mediciones.';k.innerHTML='';chart.innerHTML='';return;}
  const last=rows[rows.length-1],p1=estimate(cfg,rows,1),p7=estimate(cfg,rows,7);
  state.innerHTML='<span class="ptab-ml-state-chip ok">Estimación disponible</span><span>Último dato: '+datestr(last.fecha)+' · '+rows.length+' días con medición disponibles.</span>';
  const box=(name,value,desc,err)=>'<article class="ptab-ml-kpi"><span>'+name+'</span><strong>'+fmt(value)+' <small>'+cfg.unit+'</small></strong><small>'+desc+'</small>'+(err?'<em>MAE de validación: '+fmt(err.mae)+' '+cfg.unit+'</em>':'')+'</article>';
  k.innerHTML=box('Último valor medido',last.valor,datestr(last.fecha),null)+box('Predicción día siguiente',p1,datestr(future(last.fecha,1)),cfg.validation['1'])+box('Predicción a 7 días',p7,datestr(future(last.fecha,7)),cfg.validation['7']);
  renderChart(chart,rows,p1,p7,last.fecha);
- foot.textContent='Validación cronológica y modelos scikit-learn: agosto–octubre de 2026 (hasta 20/10/2026). Validación cronológica: +1 día '+cfg.validation['1'].method+' (MAE '+fmt(cfg.validation['1'].mae)+' '+cfg.unit+', n='+cfg.validation['1'].n+'); +7 días '+cfg.validation['7'].method+' (MAE '+fmt(cfg.validation['7'].mae)+' '+cfg.unit+', n='+cfg.validation['7'].n+'). No se reentrena automáticamente al cargar nuevos datos. Estas estimaciones no sustituyen la medición real.';
  }
- toggle.addEventListener('change',()=>{try{localStorage.setItem('preinca_ml_'+cfg.id,toggle.checked?'1':'0');}catch(e){}render()});return render;
+ return render;
 }
 const renders=CONFIG.map(install);
 function update(){renders.forEach(f=>f())}
