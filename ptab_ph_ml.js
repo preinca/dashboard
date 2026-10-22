@@ -140,7 +140,7 @@
         <div>
           <span class="ptab-ml-kicker">PREDICCIÓN DE VARIABLES CON IA</span>
           <h3>Predicción de pH · PTAB · Agua cruda · Tanque Subterráneo</h3>
-          <p>Estimación basada en el histórico real de <strong>PTAB · Agua cruda · pH (Adim)</strong>.</p>
+          <p>Área: <strong>PTAB · Agua cruda · Tanque Subterráneo</strong> · pH (Adim).</p>
         </div>
       </div>
       <div class="ptab-ml-body" id="ptab-ph-ml-body">
@@ -187,7 +187,7 @@
       const v=ymin+(ymax-ymin)*k/3, y=sy(v);
       grid.push(`<line x1="${ml}" x2="${W-mr}" y1="${y}" y2="${y}" class="ptab-ml-grid"/><text x="${ml-9}" y="${y+4}" text-anchor="end" class="ptab-ml-axis">${fmt(v,2)}</text>`);
     }
-    const tickIdx=[0,Math.floor((recent.length-1)/2),recent.length-1];
+    const tickIdx=[0,Math.floor((recent.length-1)/2)];
     const dateTicks=tickIdx.map(i=>{
       const r=recent[i],x=sx(isoDateToUtc(r.fecha));
       return `<text x="${x}" y="${H-13}" text-anchor="middle" class="ptab-ml-axis">${fmtDate(r.fecha).slice(0,5)}</text>`;
@@ -203,7 +203,7 @@
       <text x="${p1x}" y="${Math.max(15,p1y-10)}" text-anchor="middle" class="ptab-ml-pred-label">+1 d · ${fmt(p1,2)}</text>
       <text x="${p7x}" y="${Math.max(15,p7y-10)}" text-anchor="middle" class="ptab-ml-pred-label">+7 d · ${fmt(p7,2)}</text>
       ${dateTicks}
-      <text x="${p1x}" y="${H-13}" text-anchor="middle" class="ptab-ml-axis ptab-ml-axis-future">${fmtDate(future1).slice(0,5)}</text>
+      <text x="${p1x}" y="${H-30}" text-anchor="middle" class="ptab-ml-axis ptab-ml-axis-future">${fmtDate(future1).slice(0,5)}</text>
       <text x="${p7x}" y="${H-13}" text-anchor="middle" class="ptab-ml-axis ptab-ml-axis-future">${fmtDate(future7).slice(0,5)}</text>
     </svg>`;
   }
@@ -230,11 +230,11 @@
     const lo=MODEL.operatingRange.min,hi=MODEL.operatingRange.max;
     const i1=[p1-m1.absError90,p1+m1.absError90],i7=[p7-m7.absError90,p7+m7.absError90];
 
-    if(state) state.innerHTML=`<span class="ptab-ml-state-chip ok">Modelo listo</span><span>Último histórico disponible: <strong>${fmtDate(ctx.lastDate)}</strong> · ${daily.length} días con medición · ${MODEL.training.rawValidReadings} lecturas válidas usadas para el entrenamiento actual.</span>`;
+    if(state) state.innerHTML=`<span class="ptab-ml-state-chip ok">Estimación disponible</span><span>Último histórico disponible: <strong>${fmtDate(ctx.lastDate)}</strong> · ${daily.length} días con medición.</span>`;
     if(kpis) kpis.innerHTML=`
       <article class="ptab-ml-kpi"><span>Último valor real</span><strong>${fmt(ctx.lastValue,2)}</strong><small>${fmtDate(ctx.lastDate)}</small></article>
-      <article class="ptab-ml-kpi ${s1.cls}"><span>Predicción día siguiente</span><strong>${fmt(p1,2)}</strong><small>${fmtDate(addDays(ctx.lastDate,1))} · ${s1.txt}</small><em>90 % error histórico aprox.: ${fmt(i1[0],2)}–${fmt(i1[1],2)}</em></article>
-      <article class="ptab-ml-kpi ${s7.cls}"><span>Predicción a 7 días</span><strong>${fmt(p7,2)}</strong><small>${fmtDate(addDays(ctx.lastDate,7))} · ${s7.txt}</small><em>90 % error histórico aprox.: ${fmt(i7[0],2)}–${fmt(i7[1],2)}</em></article>
+      <article class="ptab-ml-kpi ok"><span>Predicción día siguiente</span><strong>${fmt(p1,2)}</strong><small>${fmtDate(addDays(ctx.lastDate,1))} · ${s1.txt}</small><em>MAE de validación: ${fmt(m1.mae,3)} pH</em></article>
+      <article class="ptab-ml-kpi ok"><span>Predicción a 7 días</span><strong>${fmt(p7,2)}</strong><small>${fmtDate(addDays(ctx.lastDate,7))} · ${s7.txt}</small><em>MAE de validación: ${fmt(m7.mae,3)} pH</em></article>
       <article class="ptab-ml-kpi neutral"><span>Rango operativo</span><strong>${fmt(lo,1)}–${fmt(hi,1)}</strong><small>pH adimensional</small><em>La predicción no sustituye la lectura real.</em></article>`;
     renderChart(chart,daily,p1,p7,ctx.lastDate);
 
