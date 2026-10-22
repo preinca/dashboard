@@ -7,7 +7,7 @@ const CONFIG=[
  {id:'ptab_08',key:'pozo3-caudal',name:'Caudal',unit:'L/s',place:'Pozo #3'},
  {id:'ptab_13',key:'tanque-nivel',name:'Nivel TQ',unit:'%',place:'Tanque Subterráneo'},
  {id:'ptab_15',key:'tanque-tds',name:'TDS',unit:'mg/L',place:'Tanque Subterráneo'},
- {id:'ptab_16',key:'tanque-turbidez',name:'Turbidez',unit:'NTU',place:'Tanque Subterráneo'}
+ {id:'ptab_16',key:'tanque-turbidez',name:'Turbidez',unit:'NTU',place:'Tanque Subterráneo',range:{display:'< 10',unit:'NTU'}}
 ];
 const DAY=86400000,fmt=(n,d=2)=>Number.isFinite(n)?n.toLocaleString('es-VE',{minimumFractionDigits:d,maximumFractionDigits:d}):'—';
 function dateValue(d){return Date.parse(d+'T00:00:00Z');}
@@ -156,12 +156,12 @@ for(const cfg of CONFIG){
   if(signature===lastSignature)return;lastSignature=signature;
   const one=train(rows,1),week=train(rows,7),last=rows[rows.length-1],fv=features(rows,rows.length-1);
   const p1=Math.max(0,one.predict(fv)),p7=Math.max(0,week.predict(fv));
-  const mae=t=>t.mae===null?'Validación insuficiente':'MAE de validación: '+fmt(t.mae)+' '+cfg.unit+' (n='+t.n+')';
+  const mae=t=>t.mae===null?'Validación insuficiente':'MAE de validación: '+fmt(t.mae)+' '+cfg.unit;
   status.innerHTML='<span class="ptab-ml-state-chip ok">Estimación disponible</span><span>Último dato disponible: '+datestr(last.fecha)+' · '+rows.length+' días con medición.</span>';
   function box(label,val,detail,metric){
    return '<article class="ptab-ml-kpi'+(metric?' ok':'')+'"><span>'+label+'</span><strong>'+fmt(val)+' <small>'+cfg.unit+'</small></strong><small>'+detail+'</small>'+(metric?'<em>'+mae(metric)+'</em>':'')+'</article>';
   }
-  kpis.innerHTML=box('Último valor real',last.valor,datestr(last.fecha))+box('Predicción día siguiente',p1,datestr(future(last.fecha,1)),one)+box('Predicción a 7 días',p7,datestr(future(last.fecha,7)),week);
+  kpis.innerHTML=box('Último valor real',last.valor,datestr(last.fecha))+box('Predicción día siguiente',p1,datestr(future(last.fecha,1)),one)+box('Predicción a 7 días',p7,datestr(future(last.fecha,7)),week)+(cfg.range?'<article class="ptab-ml-kpi neutral"><span>Rango operativo</span><strong>&lt; 10</strong><small>'+cfg.range.unit+'</small><em>La predicción no sustituye la lectura real.</em></article>':'');
   renderChart(chart,rows,p1,p7,last.fecha);
  });
 }
