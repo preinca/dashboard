@@ -39,9 +39,11 @@ function escapeText(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':
     const W=900,H=260,ml=50,mr=24,mt=20,mb=44;
     const actualVals=recent.map(x=>x.valor).filter(Number.isFinite);
     const predVals=[p1,p7].filter(Number.isFinite);
-    let ymin=Math.min(...actualVals,...predVals)-0.18, ymax=Math.max(...actualVals,...predVals)+0.18;
-    if(ymax-ymin<0.45){const c=(ymax+ymin)/2;ymin=c-.225;ymax=c+.225;}
-    ymin=Math.max(0,ymin);ymax=Math.min(14,ymax);
+    // Escala propia de cada variable (no aplicar el rango 0–14 del pH).
+    const minVal=Math.min(...actualVals,...predVals),maxVal=Math.max(...actualVals,...predVals);
+    const margin=Math.max((maxVal-minVal)*0.16,Math.abs(maxVal)*0.025,0.05);
+    let ymin=Math.max(0,minVal-margin),ymax=maxVal+margin;
+    if(ymax<=ymin)ymax=ymin+1;
     const allDates=[...recent.map(x=>dateValue(x.fecha)),dateValue(future(lastDate,1)),dateValue(future(lastDate,7))];
     const xmin=Math.min(...allDates),xmax=Math.max(...allDates);
     const sx=t=>ml+(t-xmin)/(xmax-xmin||1)*(W-ml-mr);
@@ -63,7 +65,7 @@ function escapeText(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':
     const tickIdx=[0,Math.floor((recent.length-1)/2),recent.length-1];
     const dateTicks=tickIdx.map(i=>{
       const r=recent[i],x=sx(dateValue(r.fecha));
-      return `<text x="${x}" y="${H-13}" text-anchor="middle" class="ptab-ml-axis">${datestr(r.fecha).slice(0,5)}</text>`;
+      return `<text x="${x}" y="${H-13}" text-anchor="middle" class="ptab-ml-axis">${r.fecha.slice(8,10)+'/'+r.fecha.slice(5,7)}</text>`;
     }).join('');
     const p1x=sx(dateValue(future1)),p1y=sy(p1),p7x=sx(dateValue(future7)),p7y=sy(p7);
     host.innerHTML=`<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" aria-hidden="true">
@@ -76,8 +78,8 @@ function escapeText(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':
       <text x="${p1x}" y="${Math.max(15,p1y-10)}" text-anchor="middle" class="ptab-ml-pred-label">+1 d · ${fmt(p1,2)}</text>
       <text x="${p7x}" y="${Math.max(15,p7y-10)}" text-anchor="middle" class="ptab-ml-pred-label">+7 d · ${fmt(p7,2)}</text>
       ${dateTicks}
-      <text x="${p1x}" y="${H-13}" text-anchor="middle" class="ptab-ml-axis ptab-ml-axis-future">${datestr(future1).slice(0,5)}</text>
-      <text x="${p7x}" y="${H-13}" text-anchor="middle" class="ptab-ml-axis ptab-ml-axis-future">${datestr(future7).slice(0,5)}</text>
+      <text x="${p1x}" y="${H-13}" text-anchor="middle" class="ptab-ml-axis ptab-ml-axis-future">${future1.slice(8,10)+'/'+future1.slice(5,7)}</text>
+      <text x="${p7x}" y="${H-13}" text-anchor="middle" class="ptab-ml-axis ptab-ml-axis-future">${future7.slice(8,10)+'/'+future7.slice(5,7)}</text>
     </svg>`;
   }
 
