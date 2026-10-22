@@ -62,7 +62,7 @@ function escapeText(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':
       const v=ymin+(ymax-ymin)*k/3, y=sy(v);
       grid.push(`<line x1="${ml}" x2="${W-mr}" y1="${y}" y2="${y}" class="ptab-ml-grid"/><text x="${ml-9}" y="${y+4}" text-anchor="end" class="ptab-ml-axis">${fmt(v,2)}</text>`);
     }
-    const tickIdx=[0,Math.floor((recent.length-1)/2),recent.length-1];
+    const tickIdx=[0,Math.floor((recent.length-1)/2)];
     const dateTicks=tickIdx.map(i=>{
       const r=recent[i],x=sx(dateValue(r.fecha));
       return `<text x="${x}" y="${H-13}" text-anchor="middle" class="ptab-ml-axis">${r.fecha.slice(8,10)+'/'+r.fecha.slice(5,7)}</text>`;
@@ -78,19 +78,19 @@ function escapeText(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':
       <text x="${p1x}" y="${Math.max(15,p1y-10)}" text-anchor="middle" class="ptab-ml-pred-label">+1 d · ${fmt(p1,2)}</text>
       <text x="${p7x}" y="${Math.max(15,p7y-10)}" text-anchor="middle" class="ptab-ml-pred-label">+7 d · ${fmt(p7,2)}</text>
       ${dateTicks}
-      <text x="${p1x}" y="${H-13}" text-anchor="middle" class="ptab-ml-axis ptab-ml-axis-future">${future1.slice(8,10)+'/'+future1.slice(5,7)}</text>
+      <text x="${p1x}" y="${H-30}" text-anchor="middle" class="ptab-ml-axis ptab-ml-axis-future">${future1.slice(8,10)+'/'+future1.slice(5,7)}</text>
       <text x="${p7x}" y="${H-13}" text-anchor="middle" class="ptab-ml-axis ptab-ml-axis-future">${future7.slice(8,10)+'/'+future7.slice(5,7)}</text>
     </svg>`;
   }
 
 function install(cfg){
  const card=document.createElement('section');card.className='card ptab-ml-card cep-ml-card mb';card.id='cep-model-'+cfg.id;card.dataset.mlId=cfg.id==='ptab_01'?'presion':'caudal';
- card.innerHTML='<div class="ptab-ml-head"><div><span class="ptab-ml-kicker">PREDICCIÓN DE VARIABLES CON IA</span><h3>Predicción de '+cfg.name+' ('+cfg.unit+') · PTAB · Agua cruda · Pozo 2</h3><p>Histórico de Agua cruda · Pozo #2. Valores promedio de las lecturas diarias disponibles.</p></div></div><div class="ptab-ml-body"><div class="ptab-ml-state"></div><div class="ptab-ml-kpis"></div><div class="ptab-ml-chart-wrap"><div class="ptab-ml-chart-head"><div><strong>Histórico reciente y proyección</strong><span>Promedio diario de las lecturas disponibles</span></div></div><div class="ptab-ml-chart"></div></div></div>';
+ card.innerHTML='<div class="ptab-ml-head"><div><span class="ptab-ml-kicker">PREDICCIÓN DE VARIABLES CON IA</span><h3>Predicción de '+cfg.name+' ('+cfg.unit+') · PTAB · Agua cruda · Pozo 2</h3><p>Área: <strong>PTAB · Agua cruda · Pozo #2</strong> · '+cfg.name+' ('+cfg.unit+').</p></div></div><div class="ptab-ml-body"><div class="ptab-ml-state"></div><div class="ptab-ml-kpis"></div><div class="ptab-ml-chart-wrap"><div class="ptab-ml-chart-head"><div><strong>Histórico reciente y proyección</strong><span>Promedio diario de las lecturas disponibles</span></div></div><div class="ptab-ml-chart"></div></div></div>';
  HOST.appendChild(card); function render(){card.classList.add('is-enabled');const rows=daily(cfg.id),state=card.querySelector('.ptab-ml-state'),k=card.querySelector('.ptab-ml-kpis'),chart=card.querySelector('.ptab-ml-chart');
  if(rows.length<14){state.textContent='Histórico insuficiente: se necesitan al menos 14 días con mediciones.';k.innerHTML='';chart.innerHTML='';return;}
  const last=rows[rows.length-1],p1=estimate(cfg,rows,1),p7=estimate(cfg,rows,7);
  state.innerHTML='<span class="ptab-ml-state-chip ok">Estimación disponible</span><span>Último dato: '+datestr(last.fecha)+' · '+rows.length+' días con medición disponibles.</span>';
- const box=(name,value,desc,err)=>'<article class="ptab-ml-kpi"><span>'+name+'</span><strong>'+fmt(value)+' <small>'+cfg.unit+'</small></strong><small>'+desc+'</small>'+(err?'<em>MAE de validación: '+fmt(err.mae)+' '+cfg.unit+'</em>':'')+'</article>';
+ const box=(name,value,desc,err)=>'<article class="ptab-ml-kpi'+(err?' ok':'')+'"><span>'+name+'</span><strong>'+fmt(value)+' <small>'+cfg.unit+'</small></strong><small>'+desc+'</small>'+(err?'<em>MAE de validación: '+fmt(err.mae)+' '+cfg.unit+'</em>':'')+'</article>';
  k.innerHTML=box('Último valor medido',last.valor,datestr(last.fecha),null)+box('Predicción día siguiente',p1,datestr(future(last.fecha,1)),cfg.validation['1'])+box('Predicción a 7 días',p7,datestr(future(last.fecha,7)),cfg.validation['7']);
  renderChart(chart,rows,p1,p7,last.fecha);
  }
