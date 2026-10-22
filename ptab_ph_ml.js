@@ -133,42 +133,28 @@
     if(card) return card;
     card=document.createElement('section');
     card.id='ptab-ph-ml-card';
-    card.className='card ptab-ml-card mb';
+    card.className='card ptab-ml-card cep-ml-card mb';
+    card.dataset.mlId='ph';
     card.innerHTML=`
       <div class="ptab-ml-head">
         <div>
-          <span class="ptab-ml-kicker">IA EXPERIMENTAL · MACHINE LEARNING</span>
-          <h3>Predicción de pH · Tanque Subterráneo</h3>
+          <span class="ptab-ml-kicker">PREDICCIÓN DE VARIABLES CON IA</span>
+          <h3>Predicción de pH · PTAB · Agua cruda · Tanque Subterráneo</h3>
           <p>Estimación basada en el histórico real de <strong>PTAB · Agua cruda · pH (Adim)</strong>.</p>
         </div>
-        <label class="ptab-ml-toggle">
-          <input type="checkbox" id="ptab-ph-ml-toggle" role="switch" aria-controls="ptab-ph-ml-body">
-          <span class="ptab-ml-toggle-ui" aria-hidden="true"></span>
-          <span class="ptab-ml-toggle-text">Mostrar predicción</span>
-        </label>
       </div>
-      <div class="ptab-ml-body" id="ptab-ph-ml-body" hidden>
+      <div class="ptab-ml-body" id="ptab-ph-ml-body">
         <div class="ptab-ml-state" id="ptab-ph-ml-state"></div>
         <div class="ptab-ml-kpis" id="ptab-ph-ml-kpis"></div>
         <div class="ptab-ml-chart-wrap">
           <div class="ptab-ml-chart-head">
             <div><strong>Comportamiento reciente y proyección</strong><span>Promedio diario de las lecturas disponibles</span></div>
-            <span class="ptab-ml-model-chip">Ensamble SVR · RBF</span>
           </div>
           <div class="ptab-ml-chart" id="ptab-ph-ml-chart" role="img" aria-label="Histórico reciente y predicción de pH"></div>
         </div>
-        <div class="ptab-ml-foot" id="ptab-ph-ml-foot"></div>
       </div>`;
     view.appendChild(card);
 
-    const toggle=card.querySelector('#ptab-ph-ml-toggle');
-    let enabled=false;
-    try{ enabled=localStorage.getItem(STORAGE_KEY)==='1'; }catch(_e){}
-    toggle.checked=enabled;
-    toggle.addEventListener('change',()=>{
-      try{localStorage.setItem(STORAGE_KEY,toggle.checked?'1':'0');}catch(_e){}
-      render();
-    });
     return card;
   }
 
@@ -224,25 +210,17 @@
 
   function render(){
     const card=ensureCard(); if(!card) return;
-    const toggle=card.querySelector('#ptab-ph-ml-toggle');
-    const body=card.querySelector('#ptab-ph-ml-body');
-    const enabled=!!(toggle&&toggle.checked);
-    card.classList.toggle('is-enabled',enabled);
-    if(body) body.hidden=!enabled;
-    if(!enabled) return;
-
+    card.classList.add('is-enabled');
     const daily=collectDaily();
     const ctx=buildFeatureVector(daily);
     const state=card.querySelector('#ptab-ph-ml-state');
     const kpis=card.querySelector('#ptab-ph-ml-kpis');
     const chart=card.querySelector('#ptab-ph-ml-chart');
-    const foot=card.querySelector('#ptab-ph-ml-foot');
 
     if(!ctx || daily.length<15){
       if(state) state.innerHTML='<span class="ptab-ml-state-chip warn">Histórico insuficiente</span><span>Se requieren al menos 15 días de contexto para calcular las variables de entrada.</span>';
       if(kpis) kpis.innerHTML='';
       if(chart) chart.innerHTML='<div class="ptab-ml-empty">Sin datos suficientes para ejecutar el modelo.</div>';
-      if(foot) foot.textContent='';
       return;
     }
 
@@ -259,10 +237,7 @@
       <article class="ptab-ml-kpi ${s7.cls}"><span>Predicción a 7 días</span><strong>${fmt(p7,2)}</strong><small>${fmtDate(addDays(ctx.lastDate,7))} · ${s7.txt}</small><em>90 % error histórico aprox.: ${fmt(i7[0],2)}–${fmt(i7[1],2)}</em></article>
       <article class="ptab-ml-kpi neutral"><span>Rango operativo</span><strong>${fmt(lo,1)}–${fmt(hi,1)}</strong><small>pH adimensional</small><em>La predicción no sustituye la lectura real.</em></article>`;
     renderChart(chart,daily,p1,p7,ctx.lastDate);
-    if(foot) foot.innerHTML=`
-      <span><strong>Validación temporal +1 día:</strong> MAE ${fmt(m1.mae,3)} pH · RMSE ${fmt(m1.rmse,3)}</span>
-      <span><strong>+7 días:</strong> MAE ${fmt(m7.mae,3)} pH · RMSE ${fmt(m7.rmse,3)}</span>
-      <span><strong>Entrenamiento:</strong> ${fmtDate(MODEL.training.firstDate)}–${fmtDate(MODEL.training.lastDate)} · StandardScaler + ensamble SVR RBF</span>`;
+
   }
 
   function installHooks(){
