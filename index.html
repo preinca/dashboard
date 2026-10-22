@@ -12,7 +12,7 @@
 <link rel="stylesheet" href="estilos.css?v=20261021-resumen-fix-nav">
 <link rel="stylesheet" href="diagramas.css?v=20261015-1">
 <link rel="stylesheet" href="dashboard_extras.css?v=20261021-resumen-movil2">
-<link rel="stylesheet" href="ptab_ph_ml.css?v=20261016-ml1">
+<link rel="stylesheet" href="ptab_ph_ml.css?v=20261022-cep-v2">
 <link rel="stylesheet" href="ptar_diagrama_interactivo.css?v=20261020-3">
 
 <style id="drive-refresh-critical">
@@ -561,7 +561,7 @@
       </div>
       <div class="card mb">
         <div class="card-h"><h3>PTAB · Aguas Blancas</h3><span class="note">Área: Tanque Subterráneo</span></div>
-        <div class="card-b" id="cep-ptab-predictions"></div>
+        <div class="card-b"><div class="cep-ml-toolbar"><label for="cep-ml-filter">Visualizar predicciones</label><select id="cep-ml-filter" aria-label="Filtrar variables de predicción"><option value="all">Todas las variables</option><option value="ph">pH · Tanque Subterráneo</option><option value="presion">Presión (psi) · Pozo 2</option><option value="caudal">Caudal (L/s) · Pozo 2</option><option value="none">Ninguna</option></select></div><div id="cep-ptab-predictions"></div></div>
       </div>
     </section>
 
@@ -807,8 +807,21 @@
 <script src="config.js?v=20261002-v11-9-logos"></script>
 <script src="app.js?v=20261021-validacion-clave1"></script>
 <script src="ptab_ph_ml_model.js?v=20261016-ml1"></script>
-<script src="ptab_ph_ml.js?v=20261019-cep1"></script>
-<script src="ptab_pozo2_ml.js?v=20261022-grafica-correcta"></script>
+<script src="ptab_ph_ml.js?v=20261022-cep-v2"></script>
+<script src="ptab_pozo2_ml.js?v=20261022-cep-v2"></script>
+<script>
+(function(){
+  const filter=document.getElementById('cep-ml-filter');
+  if(!filter)return;
+  function apply(){
+    document.querySelectorAll('#cep-ptab-predictions .cep-ml-card').forEach(card=>{
+      card.hidden=filter.value==='none'||(filter.value!=='all'&&card.dataset.mlId!==filter.value);
+    });
+  }
+  filter.addEventListener('change',apply);
+  apply();
+})();
+</script>
 <script src="diagramas.js?v=20261015-1"></script>
 <script src="dashboard_extras.js?v=20261019-v13"></script>
 <script src="ptar_diagrama_interactivo.js?v=20261020-3"></script>
