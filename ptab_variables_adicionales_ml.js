@@ -76,7 +76,11 @@ function train(rows,h){
  const pairs=targetPairs(rows,h);
  if(pairs.length<14)return {mae:null,n:0,predict:x=>x[0],method:'Referencia temporal',samples:pairs.length};
  const nval=Math.max(4,Math.min(12,Math.floor(pairs.length*.23))),cut=pairs.length-nval;
- const train=pairs.slice(0,cut),valid=pairs.slice(cut);
+ const valid=pairs.slice(cut);
+ // Evitar fuga temporal: al validar, entrenar solo con objetivos ya conocidos
+ // en la primera fecha de predicción del conjunto de validación.
+ const train=pairs.slice(0,cut).filter(p=>dateValue(future(p.date,h))<=dateValue(valid[0].date));
+ if(train.length<8)return {mae:null,n:0,predict:x=>x[0],method:'Referencia temporal',samples:pairs.length};
  const methods=['last','mean3','krr:0.05:0.5','krr:0.2:0.5','krr:0.05:2','krr:0.2:2'];
  let best=null;
  for(const m of methods){const model=predictor(train,m);if(!model)continue;
