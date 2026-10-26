@@ -266,3 +266,34 @@ img,svg,canvas,video{max-width:100%}
   #v-resumen .resumen-desv-intro{align-items:flex-start}
   #v-resumen .resumen-desv-empty{grid-column:1/-1}
 }
+
+/* Resumen de planta: cintillos horizontales de ancho completo. */
+#v-resumen .resumen-desv-grid{
+  display:flex;flex-direction:column;align-content:initial;align-items:stretch;
+  justify-content:flex-start;gap:9px;width:100%;flex:0 0 auto;
+}
+#v-resumen .resumen-desv-card{
+  display:grid;grid-template-columns:minmax(110px,0.9fr) minmax(160px,1.8fr) minmax(105px,0.8fr) minmax(130px,1.1fr);
+  align-items:center;column-gap:16px;row-gap:5px;
+  width:100%;min-width:0;min-height:64px;height:auto;
+  padding:12px 17px;border-top:1px solid var(--line);
+  border-left:5px solid var(--resumen-area,#375C91);
+  border-radius:10px;text-align:left;
+}
+#v-resumen .resumen-desv-servicio{font-size:12px;line-height:1.35}
+#v-resumen .resumen-desv-variable{font-size:13px;line-height:1.4}
+#v-resumen .resumen-desv-value{font-size:24px;line-height:1.15}
+#v-resumen .resumen-desv-area{margin-top:0;font-size:11px;line-height:1.4}
+#v-resumen .resumen-desv-rango{font-size:11px;line-height:1.35}
+@media(max-width:740px){
+  #v-resumen .resumen-desv-grid{display:flex;flex-direction:column;gap:9px}
+  #v-resumen .resumen-desv-card{
+    display:grid;grid-template-columns:minmax(0,1fr) auto;
+    gap:6px 12px;align-items:center;min-height:75px;padding:11px 12px;
+  }
+  #v-resumen .resumen-desv-servicio{grid-column:1;grid-row:1}
+  #v-resumen .resumen-desv-value{grid-column:2;grid-row:1 / span 2;font-size:clamp(19px,5vw,25px);text-align:right}
+  #v-resumen .resumen-desv-variable{grid-column:1;grid-row:2;font-size:12px}
+  #v-resumen .resumen-desv-area{grid-column:1;grid-row:3;font-size:10.5px}
+  #v-resumen .resumen-desv-rango{grid-column:2;grid-row:3;justify-self:end;font-size:10px;text-align:right}
+}
