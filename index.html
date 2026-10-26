@@ -43,9 +43,9 @@
       <button class="tab" role="tab" id="t-inventario" aria-controls="v-inventario" aria-selected="false" data-tab="inventario" style="--k:#B42318">
         <span class="dot"></span>Inventario Quimico<span class="st" data-tabst="inventario"></span>
       </button>
-      <div class="nav-h">Recomendaciones</div>
+      <div class="nav-h">Mejoras</div>
       <button class="tab" role="tab" id="t-sugerencias" aria-controls="v-sugerencias" aria-selected="false" data-tab="sugerencias" style="--k:#1E63C8">
-        <span class="dot"></span>Sugerencias<span class="st idle" data-tabst="sugerencias"></span>
+        <span class="dot"></span>Mejoras<span class="st idle" data-tabst="sugerencias"></span>
       </button>
       <div class="nav-h">Servicios</div>
       <button class="tab" role="tab" id="t-ptab" aria-controls="v-ptab" aria-selected="false" data-tab="ptab" style="--k:var(--agua)">
@@ -697,50 +697,52 @@
       </div>
     </section>
 
-    <!-- ======= SUGERENCIAS ======= -->
+    <!-- ======= MEJORAS DE SERVICIOS ======= -->
     <section class="view" id="v-sugerencias" role="tabpanel" aria-labelledby="t-sugerencias" hidden>
       <div class="card mb">
-        <div class="card-b sug-intro">
-          <div class="sug-intro-copy">
-            <h3>Ayúdanos a mejorar el dashboard</h3>
-            <p>Operadores, técnicos, supervisores y coordinadores pueden registrar aquí ideas, mejoras o necesidades detectadas durante el uso del dashboard. Las sugerencias quedarán disponibles para su revisión y seguimiento.</p>
-          </div>
-        </div>
+        <div class="card-b sug-intro"><div class="sug-intro-copy">
+          <h3>Propuestas de mejora para Servicios de Planta</h3>
+          <p>Registre oportunidades de mejora relacionadas con su área de trabajo, identifique las problemáticas que desea resolver y explique los beneficios esperados. Este apartado está destinado a los servicios operativos, no a modificaciones del dashboard.</p>
+        </div></div>
       </div>
-
       <div class="card mb">
-        <div class="card-h">
-          <div>
-            <h3>Nueva sugerencia</h3>
-            <span class="note">Indique su nombre y describa de forma clara qué le gustaría mejorar o agregar.</span>
-          </div>
-        </div>
+        <div class="card-h"><div><h3>Nueva propuesta de mejora</h3><span class="note">Indique el servicio al que pertenece y detalle su propuesta.</span></div></div>
         <div class="card-b">
           <form class="sug-form" id="sug-form">
-            <label class="sug-field sug-name-field">Nombre
+            <label class="sug-field sug-name-field">Nombre del operador
               <input id="sug-name" type="text" maxlength="120" autocomplete="name" placeholder="Nombre y apellido" required>
             </label>
-            <label class="sug-field">Sugerencia
-              <textarea id="sug-message" maxlength="2000" placeholder="Escriba aquí su sugerencia para el dashboard…" required></textarea>
+            <label class="sug-field">Área de servicio
+              <select id="sug-area" required>
+                <option value="">Seleccione el área de servicio</option>
+                <option value="PTAB · Aguas Blancas">PTAB · Aguas Blancas</option>
+                <option value="Suavizadores · Tanques">Suavizadores · Tanques</option>
+                <option value="Vapor">Vapor</option>
+                <option value="Compresores · Aire Comprimido · Amoníaco">Compresores · Aire Comprimido · Amoníaco</option>
+                <option value="PTAR">PTAR</option>
+              </select>
+            </label>
+            <label class="sug-field">Problemáticas detectadas
+              <textarea id="sug-problema" maxlength="650" placeholder="¿Qué situación, dificultad o necesidad se presenta en el área?" required></textarea>
+            </label>
+            <label class="sug-field">Propuesta de mejora
+              <textarea id="sug-message" maxlength="650" placeholder="Describa qué mejora propone y cómo podría aplicarse." required></textarea>
+            </label>
+            <label class="sug-field">Beneficios esperados
+              <textarea id="sug-beneficios" maxlength="650" placeholder="Explique cómo beneficiaría al proceso, la seguridad, la calidad o la operación." required></textarea>
             </label>
             <div class="sug-form-actions">
               <span class="sug-form-status" id="sug-form-status" aria-live="polite"></span>
-              <button type="submit" class="sug-send" id="sug-send">Enviar Sugerencia</button>
+              <button type="submit" class="sug-send" id="sug-send">Enviar propuesta de mejora</button>
             </div>
           </form>
         </div>
       </div>
-
       <div class="card">
-        <div class="card-h">
-          <div>
-            <h3>Sugerencias registradas</h3>
-            <span class="note" id="sug-count">0 sugerencias registradas</span>
-          </div>
-        </div>
+        <div class="card-h"><div><h3>Mejoras registradas</h3><span class="note" id="sug-count">0 mejoras registradas</span></div></div>
         <div class="card-b sug-history-wrap">
           <table class="tbl sug-table">
-            <thead><tr><th>Fecha</th><th>Nombre</th><th>Sugerencia</th><th class="sug-action-head">Acción</th></tr></thead>
+            <thead><tr><th>Fecha</th><th>Operador</th><th>Área de servicio</th><th>Problemática</th><th>Propuesta</th><th>Beneficios</th><th class="sug-action-head">Acción</th></tr></thead>
             <tbody id="sug-table-body"></tbody>
           </table>
         </div>
@@ -824,7 +826,7 @@
 })();
 </script>
 <script src="diagramas.js?v=20261015-1"></script>
-<script src="dashboard_extras.js?v=20261019-v13"></script>
+<script src="dashboard_extras.js?v=20261026-mejoras1"></script>
 <script src="ptar_diagrama_interactivo.js?v=20261020-3"></script>
 
 </body>
