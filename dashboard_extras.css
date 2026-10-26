@@ -267,10 +267,35 @@ img,svg,canvas,video{max-width:100%}
   #v-resumen .resumen-desv-empty{grid-column:1/-1}
 }
 
-/* Cuadros originales, distribuidos uno debajo de otro. */
-#v-resumen .resumen-desv-grid{display:grid;grid-template-columns:180px;justify-content:center;align-content:start;gap:10px;flex:0 0 auto}
-#v-resumen .resumen-desv-card{display:flex;flex-direction:column;width:180px;max-width:100%;height:auto}
+/* Tarjetas originales con filas automáticas: tantas columnas como quepan. */
+#v-resumen .resumen-desv-grid{
+  display:flex;
+  flex-flow:row wrap;
+  align-content:flex-start;
+  align-items:flex-start;
+  justify-content:center;
+  gap:10px;
+  width:100%;
+  flex:0 0 auto;
+}
+#v-resumen .resumen-desv-card{
+  display:flex;
+  flex-direction:column;
+  flex:0 0 180px;
+  width:180px;
+  max-width:100%;
+  height:auto;
+}
 @media(max-width:620px){
- #v-resumen .resumen-desv-grid{display:grid;grid-template-columns:180px;justify-content:center;align-content:start}
- #v-resumen .resumen-desv-card{width:180px;max-width:100%}
+  #v-resumen .resumen-desv-grid{
+    display:flex;
+    flex-flow:row wrap;
+    align-content:flex-start;
+    justify-content:center;
+  }
+  #v-resumen .resumen-desv-card{
+    flex:0 0 180px;
+    width:180px;
+    max-width:100%;
+  }
 }
