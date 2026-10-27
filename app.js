@@ -5084,7 +5084,7 @@ setTimeout(()=>{
    - Bombas Formulación: Temperatura 12-20 °C / Presión 40-120 psi
    - Bombas Envasado:    Temperatura 12-20 °C / Presión 40-120 psi
    - Envasado: lecturas existentes en filas 134-135 y bomba adicional en 136-137.
-   - Las tres bombas comparten el bloque visual Envasado de Hoja1.
+   - La plantilla nueva tiene cinco bombas: Vinagre B1, Formulación B2/B3, Envasado B4/B5.
    - Lecturas 7AM, 1PM, 7PM y 1AM en columnas E, G, I y K.
    - Se integra como quinto sistema a los filtros, tablas e históricos
      de Compresores · Refrigeración · NH3.
@@ -5103,13 +5103,18 @@ dashSalaSistemaPorArea=function(area){
 };
 
 function dashUmaDefsV8(){
+  // Filas de FORMATO_COMPRESORES_AMONIACO_IMPRESION.xlsx; cada bomba tiene temperatura y presión.
   return [
-    {id:'sala_uma_132_temperatura_timed',area:'Sistema de Enfriamiento UMA',equipo:'Bombas Formulación',variable:'Temperatura',unidad:'°C',tipoDato:'Numérico',rango:'12 - 20 °C',criterio:'Rango operativo 12 - 20 °C',sistema:DASH_SALA_UMA_SYSTEM,slotMode:'timed',row:132},
-    {id:'sala_uma_133_presion_timed',area:'Sistema de Enfriamiento UMA',equipo:'Bombas Formulación',variable:'Presión',unidad:'psi',tipoDato:'Numérico',rango:'40 - 120 psi',criterio:'Rango operativo 40 - 120 psi',sistema:DASH_SALA_UMA_SYSTEM,slotMode:'timed',row:133},
-    {id:'sala_uma_134_temperatura_timed',area:'Sistema de Enfriamiento UMA',equipo:'Bombas Envasado',variable:'Temperatura',unidad:'°C',tipoDato:'Numérico',rango:'12 - 20 °C',criterio:'Rango operativo 12 - 20 °C',sistema:DASH_SALA_UMA_SYSTEM,slotMode:'timed',row:134},
-    {id:'sala_uma_135_presion_timed',area:'Sistema de Enfriamiento UMA',equipo:'Bombas Envasado',variable:'Presión',unidad:'psi',tipoDato:'Numérico',rango:'40 - 120 psi',criterio:'Rango operativo 40 - 120 psi',sistema:DASH_SALA_UMA_SYSTEM,slotMode:'timed',row:135},
-    {id:'sala_uma_136_temperatura_timed',area:'Sistema de Enfriamiento UMA',equipo:'Bombas Envasado · Bomba 3',variable:'Temperatura',unidad:'°C',tipoDato:'Numérico',rango:'12 - 20 °C',criterio:'Rango operativo 12 - 20 °C',sistema:DASH_SALA_UMA_SYSTEM,slotMode:'timed',row:136},
-    {id:'sala_uma_137_presion_timed',area:'Sistema de Enfriamiento UMA',equipo:'Bombas Envasado · Bomba 3',variable:'Presión',unidad:'psi',tipoDato:'Numérico',rango:'40 - 120 psi',criterio:'Rango operativo 40 - 120 psi',sistema:DASH_SALA_UMA_SYSTEM,slotMode:'timed',row:137}
+    {id:'sala_uma_132_temperatura_timed',area:'Sistema de Enfriamiento UMA',equipo:'Envasado Vinagre · Bomba 1',variable:'Temperatura',unidad:'°C',tipoDato:'Numérico',rango:'12 - 20 °C',criterio:'Rango operativo 12 - 20 °C',sistema:DASH_SALA_UMA_SYSTEM,slotMode:'timed',row:132},
+    {id:'sala_uma_133_presion_timed',area:'Sistema de Enfriamiento UMA',equipo:'Envasado Vinagre · Bomba 1',variable:'Presión',unidad:'psi',tipoDato:'Numérico',rango:'40 - 120 psi',criterio:'Rango operativo 40 - 120 psi',sistema:DASH_SALA_UMA_SYSTEM,slotMode:'timed',row:133},
+    {id:'sala_uma_134_temperatura_timed',area:'Sistema de Enfriamiento UMA',equipo:'Formulación · Bomba 2',variable:'Temperatura',unidad:'°C',tipoDato:'Numérico',rango:'12 - 20 °C',criterio:'Rango operativo 12 - 20 °C',sistema:DASH_SALA_UMA_SYSTEM,slotMode:'timed',row:134},
+    {id:'sala_uma_135_presion_timed',area:'Sistema de Enfriamiento UMA',equipo:'Formulación · Bomba 2',variable:'Presión',unidad:'psi',tipoDato:'Numérico',rango:'40 - 120 psi',criterio:'Rango operativo 40 - 120 psi',sistema:DASH_SALA_UMA_SYSTEM,slotMode:'timed',row:135},
+    {id:'sala_uma_136_temperatura_timed',area:'Sistema de Enfriamiento UMA',equipo:'Formulación · Bomba 3',variable:'Temperatura',unidad:'°C',tipoDato:'Numérico',rango:'12 - 20 °C',criterio:'Rango operativo 12 - 20 °C',sistema:DASH_SALA_UMA_SYSTEM,slotMode:'timed',row:136},
+    {id:'sala_uma_137_presion_timed',area:'Sistema de Enfriamiento UMA',equipo:'Formulación · Bomba 3',variable:'Presión',unidad:'psi',tipoDato:'Numérico',rango:'40 - 120 psi',criterio:'Rango operativo 40 - 120 psi',sistema:DASH_SALA_UMA_SYSTEM,slotMode:'timed',row:137},
+    {id:'sala_uma_138_temperatura_timed',area:'Sistema de Enfriamiento UMA',equipo:'Envasado · Bomba 4',variable:'Temperatura',unidad:'°C',tipoDato:'Numérico',rango:'12 - 20 °C',criterio:'Rango operativo 12 - 20 °C',sistema:DASH_SALA_UMA_SYSTEM,slotMode:'timed',row:138},
+    {id:'sala_uma_139_presion_timed',area:'Sistema de Enfriamiento UMA',equipo:'Envasado · Bomba 4',variable:'Presión',unidad:'psi',tipoDato:'Numérico',rango:'40 - 120 psi',criterio:'Rango operativo 40 - 120 psi',sistema:DASH_SALA_UMA_SYSTEM,slotMode:'timed',row:139},
+    {id:'sala_uma_140_temperatura_timed',area:'Sistema de Enfriamiento UMA',equipo:'Envasado · Bomba 5',variable:'Temperatura',unidad:'°C',tipoDato:'Numérico',rango:'12 - 20 °C',criterio:'Rango operativo 12 - 20 °C',sistema:DASH_SALA_UMA_SYSTEM,slotMode:'timed',row:140},
+    {id:'sala_uma_141_presion_timed',area:'Sistema de Enfriamiento UMA',equipo:'Envasado · Bomba 5',variable:'Presión',unidad:'psi',tipoDato:'Numérico',rango:'40 - 120 psi',criterio:'Rango operativo 40 - 120 psi',sistema:DASH_SALA_UMA_SYSTEM,slotMode:'timed',row:141}
   ];
 }
 
@@ -5142,7 +5147,7 @@ leerSalaCompresores=async function(buffer){
     {col:9,turno:'19:00',orig:'7PM',op:opNoche,tag:'1900'},
     {col:11,turno:'01:00',orig:'1AM',op:opNoche,tag:'0100'}
   ];
-  // Filas absolutas del formato integrado: 132-133 Formulación, 134-137 Envasado.
+  // Filas absolutas de la plantilla de impresión: 132-133 Vinagre B1; 134-137 Formulación B2-B3; 138-141 Envasado B4-B5.
   // No se infiere la ubicación de la bomba por celdas combinadas: se leen E/G/I/K por fila.
   const umaDefs=dashUmaDefsV8(),umaRows=[];
   umaDefs.forEach(def=>{
