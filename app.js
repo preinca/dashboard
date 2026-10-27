@@ -960,7 +960,11 @@ function normalizarFilasPTAR(rows){
     if(!def) return null;
     id=def.id;
     const valorRaw=r.Valor ?? r.valor;
-    const valorNum=ptarNumeroLocal(valorRaw);
+    // En caudal de recirculación, un punto seguido de tres cifras es decimal
+    // (p. ej. 11.727 L/s), no un separador de miles.
+    const valorNum=id==='bio_daf_recir' && typeof valorRaw==='string' &&
+      /^\\s*[-+]?\\d+\\.\\d{3}\\s*$/.test(valorRaw)
+      ? Number(valorRaw.trim()) : ptarNumeroLocal(valorRaw);
     return {
       fecha:normalizarFechaPTAR(r.Fecha ?? r.fecha),
       turno:String(r.Turno ?? r.turno ?? '').trim(),
