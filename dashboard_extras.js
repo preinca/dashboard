@@ -53,7 +53,7 @@ function setSug(raw){
    'Fecha de registro':txt(r['Fecha de registro'])
   };
  }).filter(r=>r.Nombre||r.Sugerencia).sort((a,b)=>
-  (b.Fecha+' '+b.Hora).localeCompare(a.Fecha+' '+a.Hora)||b.numero-a.numero);
+  a.numero-b.numero);
  window.SUGERENCIAS_ROWS=SUG_ROWS;
  const dot=document.querySelector('[data-tabst="sugerencias"]');
  if(dot)dot.className='st '+(SUG_ROWS.length?'':'idle');
