@@ -299,3 +299,25 @@ img,svg,canvas,video{max-width:100%}
     max-width:100%;
   }
 }
+
+/* Identificación y seguimiento de las propuestas de mejora. */
+#v-sugerencias .sug-table{min-width:1060px}
+#v-sugerencias .sug-table th:first-child,
+#v-sugerencias .sug-table td:first-child{width:112px;min-width:112px;text-align:center;white-space:nowrap}
+#v-sugerencias .sug-table th:nth-child(2),
+#v-sugerencias .sug-table td:nth-child(2){min-width:125px;width:125px}
+#v-sugerencias .sug-table th:nth-child(3),
+#v-sugerencias .sug-table td:nth-child(3){min-width:150px;width:150px}
+#v-sugerencias .sug-table td:nth-child(4){min-width:155px;white-space:normal}
+#v-sugerencias .sug-table td:nth-child(5),
+#v-sugerencias .sug-table td:nth-child(6),
+#v-sugerencias .sug-table td:nth-child(7){min-width:215px;white-space:normal;line-height:1.45}
+#v-sugerencias .sug-table th:last-child,
+#v-sugerencias .sug-table td:last-child{width:160px;min-width:160px;text-align:center}
+#v-sugerencias .sug-folio{display:inline-block;color:#21558d;background:#edf5ff;border:1px solid #d4e4fb;border-radius:8px;padding:6px 9px;font-variant-numeric:tabular-nums}
+#v-sugerencias .sug-state-wrap{display:flex;flex-direction:column;align-items:center;gap:7px}
+#v-sugerencias .sug-state-chip{display:inline-block;border-radius:999px;padding:4px 10px;font-size:11px;font-weight:800;white-space:nowrap}
+#v-sugerencias .sug-state-chip.pending{color:#82541c;background:#fff2d9;border:1px solid #eacb8b}
+#v-sugerencias .sug-state-chip.finished{color:#16734a;background:#dcf8e9;border:1px solid #a1dfbf}
+#v-sugerencias .sug-state-select{width:100%;max-width:148px;border:1px solid var(--line);border-radius:9px;background:var(--panel);color:var(--ink);padding:7px 8px;min-height:36px;font-size:12px;font-weight:650;cursor:pointer}
+#v-sugerencias .sug-state-select:disabled{opacity:.55;cursor:wait}
