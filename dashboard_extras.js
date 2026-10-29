@@ -65,7 +65,9 @@ function pintarSug(){
  if(count)count.textContent=SUG_ROWS.length+' mejora'+(SUG_ROWS.length===1?'':'s')+' registrada'+(SUG_ROWS.length===1?'':'s');
  if(!body)return;
  if(!SUG_ROWS.length){body.innerHTML='<tr><td colspan="8" class="sug-empty">Aún no hay mejoras registradas.</td></tr>';return;}
- body.innerHTML=SUG_ROWS.map(r=>{
+ // Orden numérico definitivo al renderizar, independientemente del orden recibido desde Drive.
+ const mejorasOrdenadas=[...SUG_ROWS].sort((a,b)=>Number(a.numero)-Number(b.numero));
+ body.innerHTML=mejorasOrdenadas.map(r=>{
   const cell=v=>'<td>'+esc2(v||'—')+'</td>';
   const f='#'+String(r.numero).padStart(3,'0');
   const finished=r.estado==='Finalizada';
