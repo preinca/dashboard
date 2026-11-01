@@ -92,31 +92,30 @@ function train(rows,h){
  if(!best)return {mae:null,n:0,predict:x=>x[0],method:'Referencia temporal',samples:pairs.length};
  return {...best,predict:predictor(pairs,best.method),samples:pairs.length};
 }
-function renderChart(host,daily,p1,p7,lastDate){
+function renderChart(host,daily,p1,lastDate){
     if(!host) return;
     const recent=daily.slice(-24);
     if(!recent.length){host.innerHTML='<div class="ptab-ml-empty">No hay histórico suficiente para graficar.</div>';return;}
 
     const W=900,H=260,ml=50,mr=24,mt=20,mb=44;
     const actualVals=recent.map(x=>x.valor).filter(Number.isFinite);
-    const predVals=[p1,p7].filter(Number.isFinite);
+    const predVals=[p1].filter(Number.isFinite);
     // Escala propia de cada variable (no aplicar el rango 0–14 del pH).
     const minVal=Math.min(...actualVals,...predVals),maxVal=Math.max(...actualVals,...predVals);
     const margin=Math.max((maxVal-minVal)*0.16,Math.abs(maxVal)*0.025,0.05);
     let ymin=Math.max(0,minVal-margin),ymax=maxVal+margin;
     if(ymax<=ymin)ymax=ymin+1;
-    const allDates=[...recent.map(x=>dateValue(x.fecha)),dateValue(future(lastDate,1)),dateValue(future(lastDate,7))];
+    const allDates=[...recent.map(x=>dateValue(x.fecha)),dateValue(future(lastDate,1))];
     const xmin=Math.min(...allDates),xmax=Math.max(...allDates);
     const sx=t=>ml+(t-xmin)/(xmax-xmin||1)*(W-ml-mr);
     const sy=v=>mt+(ymax-v)/(ymax-ymin||1)*(H-mt-mb);
 
     const actualPts=recent.map(x=>`${sx(dateValue(x.fecha)).toFixed(1)},${sy(x.valor).toFixed(1)}`).join(' ');
     const last=recent[recent.length-1];
-    const future1=future(lastDate,1),future7=future(lastDate,7);
+    const future1=future(lastDate,1);
     const projPts=[
       `${sx(dateValue(last.fecha)).toFixed(1)},${sy(last.valor).toFixed(1)}`,
-      `${sx(dateValue(future1)).toFixed(1)},${sy(p1).toFixed(1)}`,
-      `${sx(dateValue(future7)).toFixed(1)},${sy(p7).toFixed(1)}`
+      `${sx(dateValue(future1)).toFixed(1)},${sy(p1).toFixed(1)}`
     ].join(' ');
     const grid=[];
     for(let k=0;k<4;k++){
@@ -128,19 +127,16 @@ function renderChart(host,daily,p1,p7,lastDate){
       const r=recent[i],x=sx(dateValue(r.fecha));
       return `<text x="${x}" y="${H-13}" text-anchor="middle" class="ptab-ml-axis">${r.fecha.slice(8,10)+'/'+r.fecha.slice(5,7)}</text>`;
     }).join('');
-    const p1x=sx(dateValue(future1)),p1y=sy(p1),p7x=sx(dateValue(future7)),p7y=sy(p7);
+    const p1x=sx(dateValue(future1)),p1y=sy(p1);
     host.innerHTML=`<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" aria-hidden="true">
       ${grid.join('')}
       <polyline points="${actualPts}" class="ptab-ml-line-real"/>
       ${recent.map(x=>`<circle cx="${sx(dateValue(x.fecha))}" cy="${sy(x.valor)}" r="2.6" class="ptab-ml-dot-real"/>`).join('')}
       <polyline points="${projPts}" class="ptab-ml-line-pred"/>
       <circle cx="${p1x}" cy="${p1y}" r="5" class="ptab-ml-dot-pred"/>
-      <circle cx="${p7x}" cy="${p7y}" r="5" class="ptab-ml-dot-pred"/>
       <text x="${p1x}" y="${Math.max(15,p1y-10)}" text-anchor="middle" class="ptab-ml-pred-label">+1 d · ${fmt(p1,2)}</text>
-      <text x="${p7x}" y="${Math.max(15,p7y-10)}" text-anchor="middle" class="ptab-ml-pred-label">+7 d · ${fmt(p7,2)}</text>
       ${dateTicks}
       <text x="${p1x}" y="${H-30}" text-anchor="middle" class="ptab-ml-axis ptab-ml-axis-future">${future1.slice(8,10)+'/'+future1.slice(5,7)}</text>
-      <text x="${p7x}" y="${H-13}" text-anchor="middle" class="ptab-ml-axis ptab-ml-axis-future">${future7.slice(8,10)+'/'+future7.slice(5,7)}</text>
     </svg>`;
   }
 
@@ -153,18 +149,18 @@ for(const cfg of CONFIG){
  let lastSignature='';
  renders.push(function render(){
   const rows=daily(cfg.id),status=card.querySelector('.ptab-ml-state'),kpis=card.querySelector('.ptab-ml-kpis'),chart=card.querySelector('.ptab-ml-chart');
-  if(rows.length<15 && cfg.id!=='ptab_19'){status.innerHTML='<span class="ptab-ml-state-chip warn">Histórico insuficiente</span><span>Hay '+rows.length+' días con medición. Se necesitan al menos 15 días y pares de fechas verificables para entrenar y validar pronósticos.</span>';kpis.innerHTML=rows.length?'<article class="ptab-ml-kpi"><span>Último valor real</span><strong>'+fmt(rows[rows.length-1].valor)+' <small>'+cfg.unit+'</small></strong><small>'+datestr(rows[rows.length-1].fecha)+'</small></article>':'';if(cfg.range)kpis.innerHTML+='<article class="ptab-ml-kpi neutral"><span>Rango operativo</span><strong>'+cfg.range.display.replace("<","&lt;")+'</strong><small>'+cfg.range.unit+'</small></article>';chart.innerHTML='<div class="ptab-ml-empty">Predicción no disponible por falta de histórico validable.</div>';return;}
+  if(!rows.length || (rows.length<15 && cfg.id!=='ptab_19')){status.innerHTML='<span class="ptab-ml-state-chip warn">Histórico insuficiente</span><span>Hay '+rows.length+' días con medición. Se necesitan al menos 15 días y pares de fechas verificables para entrenar y validar pronósticos.</span>';kpis.innerHTML=rows.length?'<article class="ptab-ml-kpi"><span>Último valor real</span><strong>'+fmt(rows[rows.length-1].valor)+' <small>'+cfg.unit+'</small></strong><small>'+datestr(rows[rows.length-1].fecha)+'</small></article>':'';if(cfg.range)kpis.innerHTML+='<article class="ptab-ml-kpi neutral"><span>Rango operativo</span><strong>'+cfg.range.display.replace("<","&lt;")+'</strong><small>'+cfg.range.unit+'</small></article>';chart.innerHTML='<div class="ptab-ml-empty">Predicción no disponible por falta de histórico validable.</div>';return;}
   const signature=rows.map(r=>r.fecha+':'+r.valor).join('|');
   if(signature===lastSignature)return;lastSignature=signature;
-  const one=train(rows,1),week=train(rows,7),last=rows[rows.length-1],fv=features(rows,rows.length-1);
-  const p1=Math.max(0,one.predict(fv)),p7=Math.max(0,week.predict(fv));
+  const one=train(rows,1),last=rows[rows.length-1],fv=features(rows,rows.length-1);
+  const p1=Math.max(0,one.predict(fv));
   const mae=t=>t.mae===null?'Validación insuficiente':'MAE de validación: '+fmt(t.mae)+' '+cfg.unit;
-  status.innerHTML=cfg.id==='ptab_19'?'<span class="ptab-ml-state-chip warn">Estimación experimental</span><span>Histórico limitado: '+rows.length+' días con medición. Se usa el último valor real como referencia para +1 y +7 días; no hay validación fiable.</span>':'<span class="ptab-ml-state-chip ok">Estimación disponible</span><span>Último dato disponible: '+datestr(last.fecha)+' · '+rows.length+' días con medición.</span>';
+  status.innerHTML=one.mae===null?'<span class="ptab-ml-state-chip warn">Estimación experimental</span><span>Datos insuficientes para validar +1 día; se presenta el último valor real como referencia. Última medición: '+datestr(last.fecha)+'.</span>':'<span class="ptab-ml-state-chip ok">Estimación disponible</span><span>Último dato disponible: '+datestr(last.fecha)+' · '+rows.length+' días con medición. Horizonte: día siguiente al último registro.</span>';
   function box(label,val,detail,metric){
    return '<article class="ptab-ml-kpi'+(metric?' ok':'')+'"><span>'+label+'</span><strong>'+fmt(val)+' <small>'+cfg.unit+'</small></strong><small>'+detail+'</small>'+(metric?'<em>'+mae(metric)+'</em>':'')+'</article>';
   }
-  kpis.innerHTML=box('Último valor real',last.valor,datestr(last.fecha))+box('Predicción día siguiente',p1,datestr(future(last.fecha,1)),one)+box('Predicción a 7 días',p7,datestr(future(last.fecha,7)),week)+(cfg.range?'<article class="ptab-ml-kpi neutral"><span>Rango operativo</span><strong>'+cfg.range.display.replace('<','&lt;')+'</strong><small>'+cfg.range.unit+'</small><em>La predicción no sustituye la lectura real.</em></article>':'');
-  renderChart(chart,rows,p1,p7,last.fecha);
+  kpis.innerHTML=box('Último valor real',last.valor,datestr(last.fecha))+box('Predicción día siguiente',p1,datestr(future(last.fecha,1)),one)+(cfg.range?'<article class="ptab-ml-kpi neutral"><span>Rango operativo</span><strong>'+cfg.range.display.replace('<','&lt;')+'</strong><small>'+cfg.range.unit+'</small><em>La predicción no sustituye la lectura real.</em></article>':'');
+  renderChart(chart,rows,p1,last.fecha);
  });
 }
 function refresh(){renders.forEach(fn=>{try{fn();}catch(e){console.error('Predicción adicional PTAB',e);}});}
