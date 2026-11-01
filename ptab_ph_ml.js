@@ -158,29 +158,28 @@
     return card;
   }
 
-  function renderChart(host,daily,p1,p7,lastDate){
+  function renderChart(host,daily,p1,lastDate){
     if(!host) return;
     const recent=daily.slice(-MAX_CHART_POINTS);
     if(!recent.length){host.innerHTML='<div class="ptab-ml-empty">No hay histórico suficiente para graficar.</div>';return;}
 
     const W=900,H=260,ml=50,mr=24,mt=20,mb=44;
     const actualVals=recent.map(x=>x.valor).filter(Number.isFinite);
-    const predVals=[p1,p7].filter(Number.isFinite);
+    const predVals=[p1].filter(Number.isFinite);
     let ymin=Math.min(...actualVals,...predVals)-0.18, ymax=Math.max(...actualVals,...predVals)+0.18;
     if(ymax-ymin<0.45){const c=(ymax+ymin)/2;ymin=c-.225;ymax=c+.225;}
     ymin=Math.max(0,ymin);ymax=Math.min(14,ymax);
-    const allDates=[...recent.map(x=>isoDateToUtc(x.fecha)),isoDateToUtc(addDays(lastDate,1)),isoDateToUtc(addDays(lastDate,7))];
+    const allDates=[...recent.map(x=>isoDateToUtc(x.fecha)),isoDateToUtc(addDays(lastDate,1))];
     const xmin=Math.min(...allDates),xmax=Math.max(...allDates);
     const sx=t=>ml+(t-xmin)/(xmax-xmin||1)*(W-ml-mr);
     const sy=v=>mt+(ymax-v)/(ymax-ymin||1)*(H-mt-mb);
 
     const actualPts=recent.map(x=>`${sx(isoDateToUtc(x.fecha)).toFixed(1)},${sy(x.valor).toFixed(1)}`).join(' ');
     const last=recent[recent.length-1];
-    const future1=addDays(lastDate,1),future7=addDays(lastDate,7);
+    const future1=addDays(lastDate,1);
     const projPts=[
       `${sx(isoDateToUtc(last.fecha)).toFixed(1)},${sy(last.valor).toFixed(1)}`,
-      `${sx(isoDateToUtc(future1)).toFixed(1)},${sy(p1).toFixed(1)}`,
-      `${sx(isoDateToUtc(future7)).toFixed(1)},${sy(p7).toFixed(1)}`
+      `${sx(isoDateToUtc(future1)).toFixed(1)},${sy(p1).toFixed(1)}`
     ].join(' ');
     const grid=[];
     for(let k=0;k<4;k++){
@@ -192,19 +191,16 @@
       const r=recent[i],x=sx(isoDateToUtc(r.fecha));
       return `<text x="${x}" y="${H-13}" text-anchor="middle" class="ptab-ml-axis">${fmtDate(r.fecha).slice(0,5)}</text>`;
     }).join('');
-    const p1x=sx(isoDateToUtc(future1)),p1y=sy(p1),p7x=sx(isoDateToUtc(future7)),p7y=sy(p7);
+    const p1x=sx(isoDateToUtc(future1)),p1y=sy(p1);
     host.innerHTML=`<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" aria-hidden="true">
       ${grid.join('')}
       <polyline points="${actualPts}" class="ptab-ml-line-real"/>
       ${recent.map(x=>`<circle cx="${sx(isoDateToUtc(x.fecha))}" cy="${sy(x.valor)}" r="2.6" class="ptab-ml-dot-real"/>`).join('')}
       <polyline points="${projPts}" class="ptab-ml-line-pred"/>
       <circle cx="${p1x}" cy="${p1y}" r="5" class="ptab-ml-dot-pred"/>
-      <circle cx="${p7x}" cy="${p7y}" r="5" class="ptab-ml-dot-pred"/>
       <text x="${p1x}" y="${Math.max(15,p1y-10)}" text-anchor="middle" class="ptab-ml-pred-label">+1 d · ${fmt(p1,2)}</text>
-      <text x="${p7x}" y="${Math.max(15,p7y-10)}" text-anchor="middle" class="ptab-ml-pred-label">+7 d · ${fmt(p7,2)}</text>
       ${dateTicks}
       <text x="${p1x}" y="${H-30}" text-anchor="middle" class="ptab-ml-axis ptab-ml-axis-future">${fmtDate(future1).slice(0,5)}</text>
-      <text x="${p7x}" y="${H-13}" text-anchor="middle" class="ptab-ml-axis ptab-ml-axis-future">${fmtDate(future7).slice(0,5)}</text>
     </svg>`;
   }
 
@@ -224,19 +220,17 @@
       return;
     }
 
-    const p1=predictOne(1,ctx.features),p7=predictOne(7,ctx.features);
-    const s1=statusFor(p1),s7=statusFor(p7);
-    const m1=MODEL.horizons['1'].validation,m7=MODEL.horizons['7'].validation;
+    const p1=predictOne(1,ctx.features);
+    const s1=statusFor(p1);
+    const m1=MODEL.horizons['1'].validation;
     const lo=MODEL.operatingRange.min,hi=MODEL.operatingRange.max;
-    const i1=[p1-m1.absError90,p1+m1.absError90],i7=[p7-m7.absError90,p7+m7.absError90];
 
-    if(state) state.innerHTML=`<span class="ptab-ml-state-chip ok">Estimación disponible</span><span>Último histórico disponible: <strong>${fmtDate(ctx.lastDate)}</strong> · ${daily.length} días con medición.</span>`;
+    if(state) state.innerHTML=`<span class="ptab-ml-state-chip ok">Estimación disponible</span><span>Último histórico disponible: <strong>${fmtDate(ctx.lastDate)}</strong> · ${daily.length} días con medición. Horizonte: día siguiente al último registro.</span>`;
     if(kpis) kpis.innerHTML=`
       <article class="ptab-ml-kpi"><span>Último valor real</span><strong>${fmt(ctx.lastValue,2)}</strong><small>${fmtDate(ctx.lastDate)}</small></article>
       <article class="ptab-ml-kpi ok"><span>Predicción día siguiente</span><strong>${fmt(p1,2)}</strong><small>${fmtDate(addDays(ctx.lastDate,1))} · ${s1.txt}</small><em>MAE de validación: ${fmt(m1.mae,3)} pH</em></article>
-      <article class="ptab-ml-kpi ok"><span>Predicción a 7 días</span><strong>${fmt(p7,2)}</strong><small>${fmtDate(addDays(ctx.lastDate,7))} · ${s7.txt}</small><em>MAE de validación: ${fmt(m7.mae,3)} pH</em></article>
       <article class="ptab-ml-kpi neutral"><span>Rango operativo</span><strong>${fmt(lo,1)}–${fmt(hi,1)}</strong><small>pH adimensional</small><em>La predicción no sustituye la lectura real.</em></article>`;
-    renderChart(chart,daily,p1,p7,ctx.lastDate);
+    renderChart(chart,daily,p1,ctx.lastDate);
 
   }
 
@@ -262,5 +256,5 @@
   ensureCard();
   installHooks();
   setTimeout(render,0);
-  window.PTAB_PH_ML = {render,collectDaily,predict:function(){const d=collectDaily(),c=buildFeatureVector(d);return c?{latest:c.lastDate,nextDay:predictOne(1,c.features),week:predictOne(7,c.features)}:null;}};
+  window.PTAB_PH_ML = {render,collectDaily,predict:function(){const d=collectDaily(),c=buildFeatureVector(d);return c?{latest:c.lastDate,nextDate:addDays(c.lastDate,1),nextDay:predictOne(1,c.features)}:null;}};
 })();
