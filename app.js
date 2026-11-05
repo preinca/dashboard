@@ -2087,9 +2087,14 @@ function construirProcesosSuavDesdeFilas(rows){
 }
 function estadoRegistroSuav(r){
   if(!r || !tieneLecturaSuav(r)) return 'SIN DATO';
+  const v=suavDefPorId(r.id);
+  const lecturas=dashLecturasMultiples(r.original);
+  if(lecturas.length>1){
+    if(!v||v.tipo==='none')return 'INFORMATIVO';
+    return lecturas.some(n=>(v.min!=null&&n<Number(v.min))||(v.max!=null&&n>Number(v.max)))?'FUERA DE RANGO':'NORMAL';
+  }
   const src=String(r.estadoFuente||'').toUpperCase();
   if(src.includes('FUERA DE RANGO')) return 'FUERA DE RANGO';
-  const v=suavDefPorId(r.id);
   if(!v || v.tipo==='none') return 'INFORMATIVO';
   const n=suavNumeroLocal(r.valor);
   if(n===null) return 'SIN DATO';
@@ -2312,9 +2317,14 @@ function construirProcesosPtabrDesdeFilas(rows){
 }
 function estadoRegistroPtabr(r){
   if(!r || !tieneLecturaPtabr(r)) return 'SIN DATO';
+  const v=ptabrDefPorId(r.id);
+  const lecturas=dashLecturasMultiples(r.original);
+  if(lecturas.length>1){
+    if(!v||v.tipo==='none')return 'INFORMATIVO';
+    return lecturas.some(n=>(v.min!=null&&n<Number(v.min))||(v.max!=null&&n>Number(v.max)))?'FUERA DE RANGO':'NORMAL';
+  }
   const src=String(r.estadoFuente||'').toUpperCase();
   if(src.includes('FUERA DE RANGO')) return 'FUERA DE RANGO';
-  const v=ptabrDefPorId(r.id);
   if(!v || v.tipo==='none') return 'INFORMATIVO';
   const n=ptabrNumeroLocal(r.valor);
   if(n===null) return 'SIN DATO';
