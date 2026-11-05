@@ -3418,8 +3418,8 @@ async function dashDriveRead(payload,timeoutMs=30000){
 function dashDriveRows(area,rows){
   if(area==='ptab') return rows.map(r=>({'Fecha':r.fecha,'Turno':r.turno,'Hora':r.hora,'Operador':r.operador,'Proceso':r.proceso,'Equipo':r.puesto,'Variable de Control':r.variable,'Rango de Operación':r.rango,'Unidad':r.unidad,'Valor':r.valor,'Valor original turno':r.original,'Estado':'','Observación':r.observacion||'','Fuente':r.fuente||'Carga operador','VariableId':r.id}));
   if(area==='suav') return rows.map(r=>({'Fecha':r.fecha,'Turno':r.turno,'Hora impresa':r.hora,'Operador':r.operador,'Proceso':r.proceso,'Equipo':r.puesto,'Variable de Control':r.variable,'Rango de Operación':r.rango,'Valor original':r.original,'Valor numérico / promedio':r.valor,'Unidad':r.unidad,'Estado':'','Observación':r.observacion||'','Fuente':r.fuente||'Carga operador','VariableId':r.id}));
-  if(area==='ptar') return rows.map(r=>({'Fecha':r.fecha,'Turno':r.turno,'Operador':r.operador,'Proceso':r.proceso,'Puesto de trabajo':r.puesto,'Variable de control':r.variable,'Rango Operación':r.rango,'Unidad':r.unidad,'Valor':r.valor,'Estado':'','Fuente':r.fuente||'Carga operador','Nota de transcripción':r.observacion||'','VariableId':r.id}));
-  if(area==='vapor') return rows.map(r=>({'Fecha':r.fecha,'Turno':r.turno,'Operador':r.operador,'Proceso':r.proceso,'Variable de control':r.variable,'Frecuencia':r.frecuencia,'Rango Operación':r.rango,'Valor':r.valor,'Unidad':r.unidad,'Tipo Rango':r.tipo,'Mínimo':r.min,'Máximo':r.max,'Estado':'','Observación':r.observacion||'','Fuente':r.fuente||'Carga operador','VariableId':r.id}));
+  if(area==='ptar') return rows.map(r=>({'Fecha':r.fecha,'Turno':r.turno,'Operador':r.operador,'Proceso':r.proceso,'Puesto de trabajo':r.puesto,'Variable de control':r.variable,'Rango Operación':r.rango,'Unidad':r.unidad,'Valor':dashTextoLecturas(r.original)||r.valor,'Estado':'','Fuente':r.fuente||'Carga operador','Nota de transcripción':r.observacion||'','VariableId':r.id}));
+  if(area==='vapor') return rows.map(r=>({'Fecha':r.fecha,'Turno':r.turno,'Operador':r.operador,'Proceso':r.proceso,'Variable de control':r.variable,'Frecuencia':r.frecuencia,'Rango Operación':r.rango,'Valor':dashTextoLecturas(r.original)||r.valor,'Unidad':r.unidad,'Tipo Rango':r.tipo,'Mínimo':r.min,'Máximo':r.max,'Estado':'','Observación':r.observacion||'','Fuente':r.fuente||'Carga operador','VariableId':r.id}));
   return [];
 }
 function dashDriveLatestDate(rows){
@@ -4070,8 +4070,10 @@ async function dashLeerFormatoPTAR(buffer){
   for(let i=6;i<m.length;i++){
     const r=m[i]||[],id=dashCellText(r[9]);if(!id)continue;const def=ptarDefPorId(id);if(!def)continue;
     [[5,6,'07:00',op07],[7,8,'19:00',op19]].forEach(([vc,oc,turno,operador])=>{
-      const raw=r[vc];if(!dashCellHas(raw))return;const num=ptarNumeroLocal(raw);if(num===null)return;
-      out.push({fecha,turno,operador,proceso:def.proceso,puesto:def.puesto,variable:def.variable,rango:def.rango,valor:num,unidad:def.unidad,tipo:def.tipo,min:def.min,max:def.max,observacion:dashCellText(r[oc]),fuente:'Carga diaria operador',id:def.id});
+      const raw=r[vc];if(!dashCellHas(raw))return;
+      const multiple=dashPromedioLecturas(raw),num=multiple!==null?multiple:ptarNumeroRegistro(raw,def);
+      if(num===null)return;
+      out.push({fecha,turno,operador,proceso:def.proceso,puesto:def.puesto,variable:def.variable,rango:def.rango,valor:num,original:dashTextoLecturas(raw)||'',unidad:def.unidad,tipo:def.tipo,min:def.min,max:def.max,observacion:dashCellText(r[oc]),fuente:'Carga diaria operador',id:def.id});
     });
   }
   if(!out.length)throw new Error('La hoja Carga diaria no contiene lecturas PTAR.');
@@ -4085,8 +4087,10 @@ async function dashLeerFormatoVapor(buffer){
   for(let i=6;i<m.length;i++){
     const r=m[i]||[],id=dashCellText(r[9]);if(!id)continue;const def=vaporDefPorId(id);if(!def)continue;
     [[5,6,'07:00',op07],[7,8,'19:00',op19]].forEach(([vc,oc,turno,operador])=>{
-      const raw=r[vc];if(!dashCellHas(raw))return;const num=vaporNumeroLocal(raw);if(num===null)return;
-      out.push({fecha,turno,operador,proceso:def.proceso,variable:def.variable,frecuencia:def.frecuencia,rango:def.rango,valor:num,unidad:def.unidad,tipo:def.tipo,min:def.min,max:def.max,observacion:dashCellText(r[oc]),fuente:'Carga diaria operador',id:def.id});
+      const raw=r[vc];if(!dashCellHas(raw))return;
+      const multiple=dashPromedioLecturas(raw),num=multiple!==null?multiple:vaporNumeroLocal(raw);
+      if(num===null)return;
+      out.push({fecha,turno,operador,proceso:def.proceso,variable:def.variable,frecuencia:def.frecuencia,rango:def.rango,valor:num,original:dashTextoLecturas(raw)||'',unidad:def.unidad,tipo:def.tipo,min:def.min,max:def.max,observacion:dashCellText(r[oc]),fuente:'Carga diaria operador',id:def.id});
     });
   }
   if(!out.length)throw new Error('La hoja Carga diaria no contiene lecturas de Vapor.');
@@ -4100,7 +4104,8 @@ async function dashLeerFormatoSuav(buffer){
   for(let i=6;i<m.length;i++){
     const r=m[i]||[],id=dashCellText(r[9]);if(!id)continue;const def=suavDefPorId(id);if(!def)continue;
     [[5,6,'1er Turno','06:00 am',op1],[7,8,'2do Turno','06:00 pm',op2]].forEach(([vc,oc,turno,hora,operador])=>{
-      const raw=r[vc];if(!dashCellHas(raw))return;const num=suavNumeroLocal(raw);
+      const raw=r[vc];if(!dashCellHas(raw))return;
+      const multiple=dashPromedioLecturas(raw),num=multiple!==null?multiple:suavNumeroLocal(raw);
       out.push({fecha,turno,hora,operador,proceso:def.proceso,puesto:def.puesto,variable:def.variable,rango:def.rango,valor:num,original:raw,unidad:def.unidad,tipo:def.tipo,min:def.min,max:def.max,estadoFuente:'',observacion:dashCellText(r[oc]),fuente:'Carga diaria operador',id:def.id});
     });
   }
@@ -5110,7 +5115,7 @@ async function dashLeerFormatoPtabV7(buffer){
     ].forEach(([vc,oc,turno,hora,operador])=>{
       const raw=r[vc];
       if(!dashCellHas(raw))return;
-      const num=ptabrNumeroLocal(raw);
+      const multiple=dashPromedioLecturas(raw),num=multiple!==null?multiple:ptabrNumeroLocal(raw);
       out.push({
         fecha,turno,hora,operador,
         proceso:def.proceso,puesto:def.puesto,variable:def.variable,rango:def.rango,
