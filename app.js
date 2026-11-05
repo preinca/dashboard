@@ -2568,7 +2568,9 @@ function waEsPrioridad(r){const s=waEstadoClase(r);return s==='crit'||s==='warn'
 function waColorEstado(r){const s=waEstadoClase(r);return s==='crit'?C.crit:s==='warn'?C.warn:s==='ok'?C.ok:C.ink3;}
 function waValorTexto(r,conUnidad=false){
   if(!r)return '—';let v='—';
-  if(r.valor!==null&&r.valor!==undefined&&r.valor!==''){v=waNumero(r.valor)??String(r.valor);}
+  const multiple=dashTextoLecturas(r.texto)||dashTextoLecturas(r.valor);
+  if(multiple)v=multiple;
+  else if(r.valor!==null&&r.valor!==undefined&&r.valor!==''){v=waNumero(r.valor)??String(r.valor);}
   else if(r.texto!==null&&r.texto!==undefined&&String(r.texto).trim()!==''){v=String(r.texto).trim();}
   if(conUnidad&&r.unidad&&v!=='—')v+=' '+r.unidad;return v;
 }
@@ -2764,7 +2766,7 @@ function cargarWA(tab,data,catalogo,fechas,source){const c=waCfg(tab);if(!c)retu
 function waExcelDate(v){if(v===null||v===undefined||v==='')return null;if(typeof v==='number'){const d=new Date(Date.UTC(1899,11,30));d.setUTCDate(d.getUTCDate()+Math.floor(v));return d.toISOString().slice(0,10);}const s=String(v).trim();if(/^\d{4}-\d{2}-\d{2}$/.test(s))return s;const m=s.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})$/);if(m){let y=Number(m[3]);if(y<100)y+=2000;return `${y}-${String(m[2]).padStart(2,'0')}-${String(m[1]).padStart(2,'0')}`;}return null;}
 function waObjs(rows){if(!rows||!rows.length)return[];const h=rows[0].map(x=>String(x??'').trim());return rows.slice(1).filter(r=>r.some(v=>v!==''&&v!==null&&v!==undefined)).map(r=>{const o={};h.forEach((k,i)=>{if(k)o[k]=r[i]??'';});return o;});}
 function waBuildCatalog(rows,areas,prefix){let n=0;return rows.filter(r=>areas.includes(String(r['Proceso / Área']||'').trim())).map(r=>({id:`${prefix}_${String(++n).padStart(2,'0')}`,area:String(r['Proceso / Área']||'').trim(),equipo:String(r['Equipo / Puesto']||'').trim(),variable:String(r.Variable||'').trim(),unidad:String(r.Unidad||'').trim(),tipoDato:String(r['Tipo de dato']||'').trim(),rango:String(r['Rango operativo']||'').trim(),criterio:String(r['Criterio disponible en fuente']||'').trim()}));}
-function waNormalizeExcelData(rows,catalogo,areas){const map=new Map(catalogo.map(v=>[[v.area,v.equipo,v.variable].join('|'),v.id]));return rows.filter(r=>String(r['Incluir dashboard']||'').trim().toLowerCase()==='sí'&&areas.includes(String(r['Proceso / Área']||'').trim())).map(r=>{const area=String(r['Proceso / Área']||'').trim(),equipo=String(r['Equipo / Puesto']||'').trim(),variable=String(r.Variable||'').trim(),id=map.get([area,equipo,variable].join('|'));if(!id)return null;const raw=r['Valor numérico'],num=raw===''||raw===null||raw===undefined?null:Number(raw);return{fecha:waExcelDate(r['Fecha operativa']),confianzaFecha:String(r['Confianza fecha']||''),turno:String(r.Turno||''),turnoOriginal:String(r['Turno original']||''),operador:String(r.Operador||''),reporteId:String(r['Reporte ID']||''),area,equipo,variable,valor:Number.isFinite(num)?num:null,texto:String(r['Valor texto']||''),unidad:String(r.Unidad||''),indicador:String(r.Indicador||''),estado:String(r['Estado normalizado']||''),observacion:String(r.Observación||''),linea:String(r['Línea original']||''),id};}).filter(Boolean);}
+function waNormalizeExcelData(rows,catalogo,areas){const map=new Map(catalogo.map(v=>[[v.area,v.equipo,v.variable].join('|'),v.id]));return rows.filter(r=>String(r['Incluir dashboard']||'').trim().toLowerCase()==='sí'&&areas.includes(String(r['Proceso / Área']||'').trim())).map(r=>{const area=String(r['Proceso / Área']||'').trim(),equipo=String(r['Equipo / Puesto']||'').trim(),variable=String(r.Variable||'').trim(),id=map.get([area,equipo,variable].join('|'));if(!id)return null;const raw=r['Valor numérico'],tx=String(r['Valor texto']||''),original=dashTextoLecturas(tx)||dashTextoLecturas(raw),avg=dashPromedioLecturas(original),num=avg!==null?avg:(raw===''||raw===null||raw===undefined?null:Number(raw));return{fecha:waExcelDate(r['Fecha operativa']),confianzaFecha:String(r['Confianza fecha']||''),turno:String(r.Turno||''),turnoOriginal:String(r['Turno original']||''),operador:String(r.Operador||''),reporteId:String(r['Reporte ID']||''),area,equipo,variable,valor:Number.isFinite(num)?num:null,texto:original||tx,unidad:String(r.Unidad||''),indicador:String(r.Indicador||''),estado:String(r['Estado normalizado']||''),observacion:String(r.Observación||''),linea:String(r['Línea original']||''),id};}).filter(Boolean);}
 async function leerExcelWA(buffer){
   const zip=await abrirZipPTAR(buffer),parser=new DOMParser(),wbXml=parser.parseFromString(await zip.text('xl/workbook.xml'),'application/xml'),relXml=parser.parseFromString(await zip.text('xl/_rels/workbook.xml.rels'),'application/xml'),rels=[...relXml.getElementsByTagNameNS('*','Relationship')];let shared=[];
   if(zip.entries.has('xl/sharedStrings.xml')){const ssXml=parser.parseFromString(await zip.text('xl/sharedStrings.xml'),'application/xml');shared=[...ssXml.getElementsByTagNameNS('*','si')].map(si=>[...si.getElementsByTagNameNS('*','t')].map(t=>t.textContent||'').join(''));}
@@ -4137,9 +4139,11 @@ function dashWADriveNormalize(raw){
   (raw||[]).forEach(o=>{
     const fecha=dashIsoDateStrict(o['Fecha operativa']??o.fecha),area=dashCellText(o['Proceso / Área']??o.area),equipo=dashCellText(o['Equipo / Puesto']??o.equipo),variable=dashCellText(o.Variable??o.variable),id=dashCellText(o.VariableId??o.id),turno=dashCellText(o.Turno??o.turno);
     if(!fecha||!area||!equipo||!variable||!id||!turno)return;
-    const nr=o['Valor numérico']??o.valor,tx=dashCellText(o['Valor texto']??o.texto),num=dashCellHas(nr)?ptarNumeroLocal(nr):null;
-    const tipoDato=dashCellText(o['Tipo de dato']??o.tipoDato)||((num!==null)?'Numérico':'Texto'),rango=dashCellText(o['Rango operativo']??o.rango),criterio=dashCellText(o['Criterio disponible en fuente']??o.criterio);
-    rows.push({fecha,confianzaFecha:dashCellText(o['Confianza fecha']??o.confianzaFecha),turno,turnoOriginal:dashCellText(o['Turno original']??o.turnoOriginal),operador:dashCellText(o.Operador??o.operador),reporteId:dashCellText(o['Reporte ID']??o.reporteId),area,equipo,variable,valor:num,texto:tx,unidad:dashCellText(o.Unidad??o.unidad),indicador:dashCellText(o.Indicador??o.indicador),estado:dashCellText(o['Estado normalizado']??o.estado),observacion:dashCellText(o.Observación??o.observacion),linea:dashCellText(o['Línea original']??o.linea),id,tipoDato,rango,criterio});
+    const nr=o['Valor numérico']??o.valor,tx=dashCellText(o['Valor texto']??o.texto);
+    const original=dashTextoLecturas(tx)||dashTextoLecturas(nr),promedio=dashPromedioLecturas(original);
+    const num=promedio!==null?promedio:(dashCellHas(nr)?ptarNumeroLocal(nr):null);
+    const tipoDato=promedio!==null?'Numérico':(dashCellText(o['Tipo de dato']??o.tipoDato)||((num!==null)?'Numérico':'Texto')),rango=dashCellText(o['Rango operativo']??o.rango),criterio=dashCellText(o['Criterio disponible en fuente']??o.criterio);
+    rows.push({fecha,confianzaFecha:dashCellText(o['Confianza fecha']??o.confianzaFecha),turno,turnoOriginal:dashCellText(o['Turno original']??o.turnoOriginal),operador:dashCellText(o.Operador??o.operador),reporteId:dashCellText(o['Reporte ID']??o.reporteId),area,equipo,variable,valor:num,texto:original||tx,unidad:dashCellText(o.Unidad??o.unidad),indicador:dashCellText(o.Indicador??o.indicador),estado:dashCellText(o['Estado normalizado']??o.estado),observacion:dashCellText(o.Observación??o.observacion),linea:dashCellText(o['Línea original']??o.linea),id,tipoDato,rango,criterio});
     if(!defs.has(id))defs.set(id,{id,area,equipo,variable,unidad:dashCellText(o.Unidad??o.unidad),tipoDato,rango,criterio});
   });
   return {rows,catalogo:[...defs.values()]};
@@ -4653,7 +4657,10 @@ async function leerSalaCompresoresV4(buffer){
       defs.push(d);defMap.set(id,d);
     }
     if(!dashCellHas(value))return;
-    const n=salaNum(value),txt=n===null?dashCellText(value):'',st=n===null?salaStatus(txt):{indicador:'',estado:'Sin indicador'};
+    const original=dashTextoLecturas(value),promedio=dashPromedioLecturas(original);
+    const n=promedio!==null?promedio:salaNum(value);
+    const txt=original||(n===null?dashCellText(value):'');
+    const st=n===null?salaStatus(txt):{indicador:'',estado:'Sin indicador'};
     rows.push({
       fecha,confianzaFecha:'Fecha ingresada por operador',turno:opts.turno||'General',turnoOriginal:opts.turnoOriginal||opts.turno||'General',operador:opts.operador||'',
       reporteId:opts.reporteId||`SALA-${fecha.replace(/-/g,'')}-${opts.tag||'GEN'}`,area,equipo,variable,valor:n,texto:txt,unidad:opts.unidad||'',indicador:st.indicador,estado:st.estado,
