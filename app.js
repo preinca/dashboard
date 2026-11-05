@@ -467,6 +467,24 @@ function ptarNumeroLocal(s){
   const n=Number(t);
   return Number.isFinite(n) ? n : null;
 }
+// Lecturas múltiples de una variable durante el mismo turno. No confundir
+// con rangos de enteros (10-20), fechas ni separadores de miles.
+function dashLecturasMultiples(raw){
+  if(typeof raw!=='string')return [];
+  const t=raw.trim();
+  if(!/^\d+(?:[.,]\d+)?(?:\s*[/-]\s*\d+(?:[.,]\d+)?)+$/.test(t))return [];
+  const parts=t.split(/\s*[/-]\s*/);
+  if(parts.length===2&&!parts.some(v=>/[.,]/.test(v)))return [];
+  const nums=parts.map(v=>ptarNumeroLocal(v));
+  return nums.every(Number.isFinite)?nums:[];
+}
+function dashPromedioLecturas(raw){
+  const nums=dashLecturasMultiples(raw);
+  return nums.length?nums.reduce((a,b)=>a+b,0)/nums.length:null;
+}
+function dashTextoLecturas(raw){
+  return dashLecturasMultiples(raw).length>1?raw:null;
+}
 function ptarParseRange(rango){
   let s=String(rango ?? '').trim()
     .replace(/˂/g,'<').replace(/≤/g,'<=').replace(/≥/g,'>=')
@@ -546,9 +564,12 @@ function ptarNumeroTexto(n){
   return x.toLocaleString('es-VE',{minimumFractionDigits:0,maximumFractionDigits:dec});
 }
 function valorTextoPTAR(r){
-  if(!r || !tieneLecturaPTAR(r.valor)) return '—';
+  if(!r)return '—';
+  const original=dashTextoLecturas(r.original)||dashTextoLecturas(r.valor);
+  if(original)return esc(original);
+  if(!tieneLecturaPTAR(r.valor))return '—';
   const n=ptarNumeroLocal(r.valor);
-  return n===null ? esc(String(r.valor)) : ptarNumeroTexto(n);
+  return n===null?esc(String(r.valor)):ptarNumeroTexto(n);
 }
 function registrosFechaPTAR(fecha=PTAR_FECHA, proceso=null){
   return PTAR_DATA.filter(r=>r.fecha===fecha && (!proceso || r.proceso===proceso));
@@ -980,8 +1001,10 @@ function normalizarFilasPTAR(rows){
     if(!def) return null;
     id=def.id;
     const valorRaw=r.Valor ?? r.valor;
+    const original=dashTextoLecturas(r.original)||dashTextoLecturas(valorRaw);
+    const promedio=dashPromedioLecturas(original);
     // Reinterpreta cadenas ambiguas usando los límites operativos de PTAR.
-    const valorNum=ptarNumeroRegistro(valorRaw,def);
+    const valorNum=promedio!==null?promedio:ptarNumeroRegistro(valorRaw,def);
     return {
       fecha:normalizarFechaPTAR(r.Fecha ?? r.fecha),
       turno:String(r.Turno ?? r.turno ?? '').trim(),
@@ -991,6 +1014,7 @@ function normalizarFilasPTAR(rows){
       variable:def.variable,
       rango:def.rango,
       valor:valorNum!==null?valorNum:(valorRaw ?? ''),
+      original:original||'',
       unidad:def.unidad || String(r.Unidad ?? r.unidad ?? '').trim(),
       tipo:def.tipo,
       min:def.min,
@@ -1245,7 +1269,10 @@ function vaporNumeroTexto(n){
   return x.toLocaleString('es-VE',{minimumFractionDigits:0,maximumFractionDigits:dec});
 }
 function valorTextoVapor(r){
-  if(!r || !tieneLecturaVapor(r.valor)) return '—';
+  if(!r)return '—';
+  const original=dashTextoLecturas(r.original)||dashTextoLecturas(r.valor);
+  if(original)return esc(original);
+  if(!tieneLecturaVapor(r.valor))return '—';
   return vaporNumeroTexto(Number(r.valor));
 }
 function registrosFechaVapor(fecha=VAPOR_FECHA, proceso=null){
@@ -1729,7 +1756,9 @@ function normalizarFilasVapor(rows){
   return (rows||[]).map(r=>{
     const fecha=normalizarFechaVapor(r.Fecha ?? r.fecha);
     const valorRaw=r.Valor ?? r.valor;
-    const valor=vaporNumeroLocal(valorRaw);
+    const original=dashTextoLecturas(r.original)||dashTextoLecturas(valorRaw);
+    const promedio=dashPromedioLecturas(original);
+    const valor=promedio!==null?promedio:vaporNumeroLocal(valorRaw);
     return {
       fecha,
       turno:String(r.Turno ?? r.turno ?? '').trim(),
@@ -1738,7 +1767,7 @@ function normalizarFilasVapor(rows){
       variable:String(r['Variable de control'] ?? r.variable ?? '').trim(),
       frecuencia:String(r.Frecuencia ?? r.frecuencia ?? '').trim(),
       rango:String(r['Rango Operación'] ?? r.Rango ?? r.rango ?? '').trim(),
-      valor,
+      valor,original:original||'',
       unidad:String(r.Unidad ?? r.unidad ?? '').trim(),
       tipo:String(r['Tipo Rango'] ?? r.tipo ?? '').trim(),
       min:vaporNumeroLocal(r['Mínimo'] ?? r.min),
@@ -2195,7 +2224,7 @@ function pintarSuav(){
 }
 function normalizarFilasSuav(rows){
   if(!SUAV_PROCESOS.length)SUAV_PROCESOS=construirProcesosSuavDesdeFilas(rows);
-  return (rows||[]).map(r=>{const proceso=suavProcesoNombre(r.Proceso??r.proceso??''),puesto=String(r.Equipo??r['Puesto de trabajo']??r.puesto??'').trim(),variable=String(r['Variable de Control']??r['Variable de control']??r.Variable??r.variable??'').trim();let id=String(r.VariableId??r.id??'').trim(),def=id?suavDefPorId(id):suavDefPorCampos(proceso,puesto,variable);if(!def)return null;id=def.id;const rawNum=r['Valor numérico / promedio']??r.Valor??r.valor,orig=r['Valor original']??r.valorOriginal??rawNum,num=suavNumeroLocal(rawNum);return {fecha:normalizarFechaSuav(r.Fecha??r.fecha),turno:String(r.Turno??r.turno??'').trim(),hora:String(r['Hora impresa']??r.Hora??r.hora??'').trim(),operador:String(r.Operador??r.operador??'').trim(),proceso:def.proceso,puesto:def.puesto,variable:def.variable,rango:def.rango,valor:num!==null?num:null,original:orig,unidad:def.unidad||String(r.Unidad??r.unidad??'').trim(),tipo:def.tipo,min:def.min,max:def.max,estadoFuente:String(r.Estado??r['Estado Fuente']??r.estado??'').trim(),observacion:String(r.Observación??r.Observacion??r.observacion??'').trim(),fuente:String(r.Fuente??r.fuente??'').trim(),id};}).filter(r=>r&&r.fecha&&r.turno&&r.id);
+  return (rows||[]).map(r=>{const proceso=suavProcesoNombre(r.Proceso??r.proceso??''),puesto=String(r.Equipo??r['Puesto de trabajo']??r.puesto??'').trim(),variable=String(r['Variable de Control']??r['Variable de control']??r.Variable??r.variable??'').trim();let id=String(r.VariableId??r.id??'').trim(),def=id?suavDefPorId(id):suavDefPorCampos(proceso,puesto,variable);if(!def)return null;id=def.id;const rawNum=r['Valor numérico / promedio']??r.Valor??r.valor,orig=[r['Valor original'],r.valorOriginal,r.original,rawNum].find(v=>!suavEsVacio(v))??rawNum,multiple=dashPromedioLecturas(orig),n=suavNumeroLocal(rawNum),num=multiple!==null?multiple:n;return {fecha:normalizarFechaSuav(r.Fecha??r.fecha),turno:String(r.Turno??r.turno??'').trim(),hora:String(r['Hora impresa']??r.Hora??r.hora??'').trim(),operador:String(r.Operador??r.operador??'').trim(),proceso:def.proceso,puesto:def.puesto,variable:def.variable,rango:def.rango,valor:num!==null?num:null,original:orig,unidad:def.unidad||String(r.Unidad??r.unidad??'').trim(),tipo:def.tipo,min:def.min,max:def.max,estadoFuente:String(r.Estado??r['Estado Fuente']??r.estado??'').trim(),observacion:String(r.Observación??r.Observacion??r.observacion??'').trim(),fuente:String(r.Fuente??r.fuente??'').trim(),id};}).filter(r=>r&&r.fecha&&r.turno&&r.id);
 }
 function cargarDatosSuav(rows,fechas,procesos,fuente){
   if(procesos&&procesos.length)SUAV_PROCESOS=procesos;const norm=normalizarFilasSuav(rows);if(!norm.length)throw new Error('El archivo no contiene registros válidos de Suavizadores y Tanques.');SUAV_DATA=norm;const dataFechas=[...new Set(norm.map(r=>r.fecha))].sort();SUAV_FECHAS=(fechas&&fechas.length?[...new Set(fechas)]:dataFechas).sort();const ult=dataFechas.filter(f=>registrosFechaSuav(f).some(tieneLecturaSuav)).slice(-1)[0]||SUAV_FECHAS[SUAV_FECHAS.length-1]||null;if(!SUAV_FECHA||!SUAV_FECHAS.includes(SUAV_FECHA)||!registrosFechaSuav(SUAV_FECHA).some(tieneLecturaSuav))SUAV_FECHA=ult;SUAV_FUENTE=fuente||SUAV_FUENTE;poblarFechasSuav();if(document.body&&document.body.dataset.dashboardReady==='1'){pintarSuav();pintarValores();pintarEncabezado();pintarPrioridades();}
@@ -2231,13 +2260,7 @@ const tieneLecturaPtabr = r => !!r && (!ptabrEsVacio(r.valor) || !ptabrEsVacio(r
 function ptabrNumeroLocal(s){ return ptarNumeroLocal(s); }
 // Lecturas tomadas varias veces en un mismo turno: conservar el texto original
 // y utilizar exclusivamente el promedio aritmético para estadísticas y gráficas.
-function ptabrLecturasMultiples(valor){
-  if(typeof valor!=='string')return [];
-  const s=valor.trim();
-  if(!/^\d+(?:[.,]\d+)?(?:\s*[\/-]\s*\d+(?:[.,]\d+)?)+$/.test(s))return [];
-  const nums=s.split(/\s*[\/-]\s*/).map(ptabrNumeroLocal);
-  return nums.every(Number.isFinite)?nums:[];
-}
+function ptabrLecturasMultiples(valor){return dashLecturasMultiples(valor);}
 function normalizarFechaPtabr(v){ return normalizarFechaPTAR(v); }
 function etiquetaFechaPtabr(v,larga=false){ return etiquetaFechaPTAR(v,larga); }
 function ptabrClave(s){ return ptarClave(s); }
