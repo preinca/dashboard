@@ -538,7 +538,11 @@ function claseEstadoPTAR(st){
 function ptarNumeroTexto(n){
   if(n == null || n === '' || !Number.isFinite(Number(n))) return '—';
   const x=Number(n);
-  const dec=Math.abs(x)<10 && Math.abs(x-Math.round(x))>1e-9 ? 2 : (Math.abs(x-Math.round(x))>1e-9 ? 1 : 0);
+  const tieneDecimales=Math.abs(x-Math.round(x))>1e-9;
+  const decimalesOriginales=(String(x).split('.')[1]||'').length;
+  // Conservar hasta tres decimales significativos en lecturas operativas,
+  // sin truncar un caudal como 14,309 L/s a 14,3 L/s.
+  const dec=tieneDecimales?Math.min(3,Math.max(Math.abs(x)<10?2:1,decimalesOriginales)):0;
   return x.toLocaleString('es-VE',{minimumFractionDigits:0,maximumFractionDigits:dec});
 }
 function valorTextoPTAR(r){
@@ -950,6 +954,22 @@ function pintarPTAR(){
   pintarGraficasPTAR();
   pintarDesviacionesPTAR();
 }
+// Un punto con tres cifras finales puede ser decimal (14.309 L/s)
+// o separador de miles (1.500 mg/L). Resolverlo mediante el rango de
+// la variable sin alterar la lectura de los demás servicios.
+function ptarNumeroRegistro(valor,def){
+  if(typeof valor==='string'){
+    const s=valor.trim().replace(/\s/g,'');
+    if(/^[+-]?\d+\.\d{3}$/.test(s)){
+      const decimal=Number(s),miles=ptarNumeroLocal(s);
+      const acotado=def&&def.tipo==='band'&&Number.isFinite(Number(def.min))&&Number.isFinite(Number(def.max));
+      if(def?.id==='bio_daf_recir' ||
+          (acotado&&decimal>=Number(def.min)&&decimal<=Number(def.max)&&
+           (miles<Number(def.min)||miles>Number(def.max))))return decimal;
+    }
+  }
+  return ptarNumeroLocal(valor);
+}
 function normalizarFilasPTAR(rows){
   return (rows||[]).map(r=>{
     const proceso=String(r.Proceso ?? r.proceso ?? '').trim();
@@ -960,11 +980,8 @@ function normalizarFilasPTAR(rows){
     if(!def) return null;
     id=def.id;
     const valorRaw=r.Valor ?? r.valor;
-    // En caudal de recirculación, un punto seguido de tres cifras es decimal
-    // (p. ej. 11.727 L/s), no un separador de miles.
-    const valorNum=id==='bio_daf_recir' && typeof valorRaw==='string' &&
-      /^[ ]*[-+]?[0-9]+[.][0-9]{3}[ ]*$/.test(valorRaw)
-      ? Number(valorRaw.trim()) : ptarNumeroLocal(valorRaw);
+    // Reinterpreta cadenas ambiguas usando los límites operativos de PTAR.
+    const valorNum=ptarNumeroRegistro(valorRaw,def);
     return {
       fecha:normalizarFechaPTAR(r.Fecha ?? r.fecha),
       turno:String(r.Turno ?? r.turno ?? '').trim(),
