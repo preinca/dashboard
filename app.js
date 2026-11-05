@@ -545,7 +545,11 @@ function estadoValorPTAR(v,valor){
 }
 function estadoRegistroPTAR(r){
   if(!r) return 'SIN DATO';
-  return estadoValorPTAR(ptarDefPorId(r.id),r.valor);
+  const v=ptarDefPorId(r.id),lecturas=dashLecturasMultiples(r.original);
+  if(lecturas.length>1&&v&&v.tipo!=='none'){
+    return lecturas.some(n=>(v.min!=null&&n<Number(v.min))||(v.max!=null&&n>Number(v.max)))?'FUERA DE RANGO':'NORMAL';
+  }
+  return estadoValorPTAR(v,r.valor);
 }
 function claseEstadoPTAR(st){
   if(st==='FUERA DE RANGO') return 'bad';
@@ -685,7 +689,7 @@ function renderPTARDia(host,proceso,v){
     if(val===null) return;
     const yy=y(val), st=estadoRegistroPTAR(r), color=st==='FUERA DE RANGO'?C.crit:C.ptar;
     pts.push([x,yy]);
-    g+=`<circle cx="${x}" cy="${yy.toFixed(1)}" r="${st==='FUERA DE RANGO'?5:4}" fill="${color}" stroke="#fff" stroke-width="1.5"><title>${esc(PTAR_TURNOS[i]+' · '+ptarNumeroTexto(val)+(v.unidad?' '+v.unidad:'')+' · '+st)}</title></circle>`;
+    g+=`<circle cx="${x}" cy="${yy.toFixed(1)}" r="${st==='FUERA DE RANGO'?5:4}" fill="${color}" stroke="#fff" stroke-width="1.5"><title>${esc(PTAR_TURNOS[i]+' · '+(dashTextoLecturas(r.original)||ptarNumeroTexto(val))+(v.unidad?' '+v.unidad:'')+' · '+st)}</title></circle>`;
     g+=`<text x="${x}" y="${Math.max(pad.t+12,yy-8).toFixed(1)}" text-anchor="middle" font-size="10.5" font-weight="600" fill="${color}">${esc(ptarNumeroTexto(val))}</text>`;
   });
   if(pts.length>1) g+=`<path d="M${pts[0][0]} ${pts[0][1].toFixed(1)} L${pts[1][0]} ${pts[1][1].toFixed(1)}" fill="none" stroke="${C.ptar}" stroke-width="2" opacity=".75"/>`;
@@ -739,7 +743,7 @@ function renderPTARHistoricoCompleto(host,v){
     }
     pts.forEach(p=>{
       const st=estadoRegistroPTAR(p[2]), fuera=st==='FUERA DE RANGO', pointColor=fuera?C.crit:color;
-      g+=`<circle cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="${fuera?5.2:3.6}" fill="${pointColor}" stroke="#fff" stroke-width="${fuera?1.7:1.2}"><title>${esc(etiquetaFechaPTAR(p[2].fecha,true)+' · '+turn+' · '+ptarNumeroTexto(p[3])+(v.unidad?' '+v.unidad:'')+' · '+st)}</title></circle>`;
+      g+=`<circle cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="${fuera?5.2:3.6}" fill="${pointColor}" stroke="#fff" stroke-width="${fuera?1.7:1.2}"><title>${esc(etiquetaFechaPTAR(p[2].fecha,true)+' · '+turn+' · '+(dashTextoLecturas(p[2].original)||ptarNumeroTexto(p[3]))+(v.unidad?' '+v.unidad:'')+' · '+st)}</title></circle>`;
     });
   });
   host.innerHTML=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc('Histórico completo · '+v.variable)}">${g}</svg>
@@ -1253,7 +1257,10 @@ function estadoValorVapor(v, valor){
 }
 function estadoRegistroVapor(r){
   if(!r) return 'SIN DATO';
-  const v=vaporDefPorId(r.id);
+  const v=vaporDefPorId(r.id),lecturas=dashLecturasMultiples(r.original);
+  if(lecturas.length>1&&v&&v.tipo!=='none'){
+    return lecturas.some(n=>(v.min!=null&&n<Number(v.min))||(v.max!=null&&n>Number(v.max)))?'FUERA DE RANGO':'NORMAL';
+  }
   return estadoValorVapor(v,r.valor);
 }
 function claseEstadoVapor(st){
@@ -1395,7 +1402,7 @@ function renderVaporDia(host,proceso,v){
     const color=st==='FUERA DE RANGO' ? C.crit : C.vapor;
     pts.push([x,yy]);
     g+=`<circle cx="${x}" cy="${yy.toFixed(1)}" r="${st==='FUERA DE RANGO'?5:4}" fill="${color}" stroke="#fff" stroke-width="1.5"><title>${esc(VAPOR_TURNOS[i]+' · '+valorTextoVapor(r)+(v.unidad?' '+v.unidad:'')+' · '+st)}</title></circle>`;
-    g+=`<text x="${x}" y="${(yy-10).toFixed(1)}" text-anchor="middle" font-size="11" font-weight="600" fill="${color}">${esc(valorTextoVapor(r))}</text>`;
+    g+=`<text x="${x}" y="${(yy-10).toFixed(1)}" text-anchor="middle" font-size="11" font-weight="600" fill="${color}">${esc(vaporNumeroTexto(Number(r.valor)))}</text>`;
   });
   if(pts.length===2){
     g+=`<line x1="${pts[0][0]}" y1="${pts[0][1].toFixed(1)}" x2="${pts[1][0]}" y2="${pts[1][1].toFixed(1)}" stroke="${C.vapor}" stroke-width="2" opacity=".55"/>`;
@@ -2193,7 +2200,7 @@ function renderSuavHistoricoCompleto(host,v){
   if(!vals.length){host.innerHTML=`<div class="ptar-chart-empty">Sin registros históricos numéricos de ${esc(v.variable)} en el archivo.</div>`;return;}
   const W=760,H=255,ax=suavEjes(v,vals,W,H),{pad,y}=ax,x=i=>fechas.length<2?(pad.l+(W-pad.r))/2:pad.l+i*(W-pad.l-pad.r)/(fechas.length-1);let g=ax.svg;
   const maxLabels=11, stepLbl=Math.max(1,Math.ceil(fechas.length/maxLabels));const ultLbl=fechas.length-1, idxLbl=[];for(let q=0;q<fechas.length;q+=stepLbl) idxLbl.push(q);if(idxLbl[idxLbl.length-1]!==ultLbl){if(ultLbl-idxLbl[idxLbl.length-1]<stepLbl*0.6) idxLbl.pop();idxLbl.push(ultLbl);}fechas.forEach((f,i)=>{if(!idxLbl.includes(i)) return;g+=`<text x="${x(i).toFixed(1)}" y="${H-10}" text-anchor="middle" font-size="9.4" fill="${C.ink3}">${esc(etiquetaFechaSuav(f))}</text>`;});
-  SUAV_TURNOS.forEach((turn,si)=>{const color=si===0?C.suav:C.ink,pts=[];fechas.forEach((f,i)=>{const r=registroSuav(v.id,turn,f),val=r?suavNumeroLocal(r.valor):null;if(val!==null)pts.push([x(i),y(val),r,val]);});if(pts.length>1){const d=pts.map((p,i)=>(i?'L':'M')+p[0].toFixed(1)+' '+p[1].toFixed(1)).join(' ');g+=`<path d="${d}" fill="none" stroke="${color}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" opacity=".9"/>`;}pts.forEach(p=>{const st=estadoRegistroSuav(p[2]),fuera=st==='FUERA DE RANGO',pc=fuera?C.crit:color;g+=`<circle cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="${fuera?5.2:3.6}" fill="${pc}" stroke="#fff" stroke-width="${fuera?1.7:1.2}"><title>${esc(etiquetaFechaSuav(p[2].fecha,true)+' · '+SUAV_TURNO_ETIQUETA[turn]+' · '+suavNumeroTexto(p[3])+(v.unidad?' '+v.unidad:'')+' · '+st)}</title></circle>`;});});
+  SUAV_TURNOS.forEach((turn,si)=>{const color=si===0?C.suav:C.ink,pts=[];fechas.forEach((f,i)=>{const r=registroSuav(v.id,turn,f),val=r?suavNumeroLocal(r.valor):null;if(val!==null)pts.push([x(i),y(val),r,val]);});if(pts.length>1){const d=pts.map((p,i)=>(i?'L':'M')+p[0].toFixed(1)+' '+p[1].toFixed(1)).join(' ');g+=`<path d="${d}" fill="none" stroke="${color}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" opacity=".9"/>`;}pts.forEach(p=>{const st=estadoRegistroSuav(p[2]),fuera=st==='FUERA DE RANGO',pc=fuera?C.crit:color;g+=`<circle cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="${fuera?5.2:3.6}" fill="${pc}" stroke="#fff" stroke-width="${fuera?1.7:1.2}"><title>${esc(etiquetaFechaSuav(p[2].fecha,true)+' · '+SUAV_TURNO_ETIQUETA[turn]+' · '+(dashTextoLecturas(p[2].original)||suavNumeroTexto(p[3]))+(v.unidad?' '+v.unidad:'')+' · '+st)}</title></circle>`;});});
   host.innerHTML=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc('Histórico completo · '+v.variable)}">${g}</svg><div class="ptar-chart-legend"><span><i style="--k:${C.suav}"></i>1er turno · 06:00</span><span><i style="--k:${C.ink}"></i>2do turno · 06:00</span><span><i style="--k:${C.crit}"></i>Fuera de rango</span><span class="ptar-chart-range">${esc(v.rango||'Sin rango definido')}</span></div>`;
 }
 function textoDesviacionesHistoricasSuav(v,limit=4){const devs=resumenDesviacionesHistoricasSuav(v).devs;if(!devs.length)return '';const partes=devs.slice(0,limit).map(r=>`${etiquetaFechaSuav(r.fecha)} ${r.turno} · ${valorTextoSuav(r)}${v.unidad?' '+v.unidad:''}`);return partes.join(' · ')+(devs.length>limit?` · +${devs.length-limit} más`:'');}
@@ -2423,7 +2430,7 @@ function renderPtabrHistoricoCompleto(host,v){
   if(!vals.length){host.innerHTML=`<div class="ptar-chart-empty">Sin registros históricos numéricos de ${esc(v.variable)} en el archivo.</div>`;return;}
   const W=760,H=255,ax=ptabrEjes(v,vals,W,H),{pad,y}=ax,x=i=>fechas.length<2?(pad.l+(W-pad.r))/2:pad.l+i*(W-pad.l-pad.r)/(fechas.length-1);let g=ax.svg;
   const maxLabels=11, stepLbl=Math.max(1,Math.ceil(fechas.length/maxLabels));const ultLbl=fechas.length-1, idxLbl=[];for(let q=0;q<fechas.length;q+=stepLbl) idxLbl.push(q);if(idxLbl[idxLbl.length-1]!==ultLbl){if(ultLbl-idxLbl[idxLbl.length-1]<stepLbl*0.6) idxLbl.pop();idxLbl.push(ultLbl);}fechas.forEach((f,i)=>{if(!idxLbl.includes(i)) return;g+=`<text x="${x(i).toFixed(1)}" y="${H-10}" text-anchor="middle" font-size="9.4" fill="${C.ink3}">${esc(etiquetaFechaPtabr(f))}</text>`;});
-  PTABR_TURNOS.forEach((turn,si)=>{const color=si===0?C.agua:C.ink,pts=[];fechas.forEach((f,i)=>{const r=registroPtabr(v.id,turn,f),val=r?ptabrNumeroLocal(r.valor):null;if(val!==null)pts.push([x(i),y(val),r,val]);});if(pts.length>1){const d=pts.map((p,i)=>(i?'L':'M')+p[0].toFixed(1)+' '+p[1].toFixed(1)).join(' ');g+=`<path d="${d}" fill="none" stroke="${color}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" opacity=".9"/>`;}pts.forEach(p=>{const st=estadoRegistroPtabr(p[2]),fuera=st==='FUERA DE RANGO',pc=fuera?C.crit:color;g+=`<circle cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="${fuera?5.2:3.6}" fill="${pc}" stroke="#fff" stroke-width="${fuera?1.7:1.2}"><title>${esc(etiquetaFechaPtabr(p[2].fecha,true)+' · '+PTABR_TURNO_ETIQUETA[turn]+' · '+ptabrNumeroTexto(p[3])+(v.unidad?' '+v.unidad:'')+' · '+st)}</title></circle>`;});});
+  PTABR_TURNOS.forEach((turn,si)=>{const color=si===0?C.agua:C.ink,pts=[];fechas.forEach((f,i)=>{const r=registroPtabr(v.id,turn,f),val=r?ptabrNumeroLocal(r.valor):null;if(val!==null)pts.push([x(i),y(val),r,val]);});if(pts.length>1){const d=pts.map((p,i)=>(i?'L':'M')+p[0].toFixed(1)+' '+p[1].toFixed(1)).join(' ');g+=`<path d="${d}" fill="none" stroke="${color}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" opacity=".9"/>`;}pts.forEach(p=>{const st=estadoRegistroPtabr(p[2]),fuera=st==='FUERA DE RANGO',pc=fuera?C.crit:color;g+=`<circle cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="${fuera?5.2:3.6}" fill="${pc}" stroke="#fff" stroke-width="${fuera?1.7:1.2}"><title>${esc(etiquetaFechaPtabr(p[2].fecha,true)+' · '+PTABR_TURNO_ETIQUETA[turn]+' · '+(dashTextoLecturas(p[2].original)||ptabrNumeroTexto(p[3]))+(v.unidad?' '+v.unidad:'')+' · '+st)}</title></circle>`;});});
   host.innerHTML=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc('Histórico completo · '+v.variable)}">${g}</svg><div class="ptar-chart-legend"><span><i style="--k:${C.agua}"></i>1er turno · 06:00 am</span><span><i style="--k:${C.ink}"></i>2do turno · 06:00 pm</span><span><i style="--k:${C.crit}"></i>Fuera de rango</span><span class="ptar-chart-range">${esc(v.rango||'Sin rango definido')}</span></div>`;
 }
 function textoDesviacionesHistoricasPtabr(v,limit=4){const devs=resumenDesviacionesHistoricasPtabr(v).devs;if(!devs.length)return '';const partes=devs.slice(0,limit).map(r=>`${etiquetaFechaPtabr(r.fecha)} ${r.turno} · ${valorTextoPtabr(r)}${v.unidad?' '+v.unidad:''}`);return partes.join(' · ')+(devs.length>limit?` · +${devs.length-limit} más`:'');}
