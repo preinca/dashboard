@@ -39,7 +39,10 @@
       </div>
     </div>
     <nav class="nav" role="tablist" aria-label="Servicios de planta">
-      
+      <div class="nav-h">Guía de uso</div>
+      <button class="tab" role="tab" id="t-guia" aria-controls="v-guia" aria-selected="false" data-tab="guia" style="--k:#1E63C8">
+        <span class="dot"></span>Guía de Carga de Planillas
+      </button>
       <div class="nav-h">Vista general</div>
       <button class="tab" role="tab" id="t-inventario" aria-controls="v-inventario" aria-selected="false" data-tab="inventario" style="--k:#B42318">
         <span class="dot"></span>Inventario Quimico<span class="st" data-tabst="inventario"></span>
@@ -91,6 +94,13 @@
         <div class="sub" id="view-sub"></div>
       </div>
 </header>
+
+    <!-- ======= GUÍA DE CARGA DE PLANILLAS ======= -->
+    <section class="view" id="v-guia" role="tabpanel" aria-labelledby="t-guia" hidden>
+      <iframe id="guia-carga-frame" src="guia_carga_planillas.html" title="Guía ilustrada para la carga de planillas de servicios" loading="lazy" style="display:block;width:100%;min-height:1000px;border:0;border-radius:14px;background:#f3f6fa" referrerpolicy="same-origin">
+        <p>Puede abrir la <a href="guia_carga_planillas.html">Guía de Carga de Planillas</a> directamente.</p>
+      </iframe>
+    </section>
 
     <!-- ======= RESUMEN ======= -->
     <section class="view" id="v-resumen" role="tabpanel" aria-labelledby="t-resumen">
@@ -808,7 +818,7 @@
 <script src="inventario_fallback.js?v=20261002-v11-9-logos"></script>
 <script src="verificados_fallback.js?v=20261002-v11-9-logos"></script>
 <script src="config.js?v=20261002-v11-9-logos"></script>
-<script src="app.js?v=20261106-compresores-operadores-opcionales"></script>
+<script src="app.js?v=20261106-guia-carga-planillas"></script>
 <script src="ptab_ph_ml_model.js?v=20261016-ml1"></script>
 <script src="ptab_ph_ml.js?v=20261101-cep-dia-siguiente"></script>
 <script src="ptab_pozo2_ml.js?v=20261101-cep-dia-siguiente"></script>
@@ -829,6 +839,29 @@
 <script src="diagramas.js?v=20261015-1"></script>
 <script src="dashboard_extras.js?v=20261029-mejoras-orden3"></script>
 <script src="ptar_diagrama_interactivo.js?v=20261020-3"></script>
+<script>
+(function(){
+  const frame=document.getElementById('guia-carga-frame');
+  const panel=document.getElementById('v-guia');
+  const button=document.getElementById('t-guia');
+  if(!frame||!panel||!button)return;
+  function resizeGuide(){
+    if(panel.hidden)return;
+    try{
+      const d=frame.contentDocument;
+      if(!d)return;
+      const h=Math.max(d.body?.scrollHeight||0,d.documentElement?.scrollHeight||0);
+      if(h>0)frame.style.height=Math.ceil(h+16)+'px';
+    }catch(e){console.warn('No se pudo ajustar la altura de la guía',e);}
+  }
+  frame.addEventListener('load',()=>{
+    resizeGuide();
+    try{frame.contentDocument?.querySelectorAll('img').forEach(img=>img.addEventListener('load',resizeGuide));}catch(e){}
+  });
+  button.addEventListener('click',()=>requestAnimationFrame(resizeGuide));
+  window.addEventListener('resize',()=>requestAnimationFrame(resizeGuide));
+})();
+</script>
 
 </body>
 </html>
