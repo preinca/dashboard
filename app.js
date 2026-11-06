@@ -67,6 +67,7 @@ const V = {
 
 const SERVICIOS = {
   resumen:{nom:'Resumen de planta', sub:'Lectura consolidada de los servicios de planta', keys:[]},
+  guia:{nom:'Guía de Carga de Planillas', sub:'Instructivo paso a paso para descargar, completar y subir registros operativos', color:'#1E63C8', corto:'Guía de carga', kpi:null, keys:[]},
   inventario:{nom:'Inventario Quimico', sub:'Productos químicos de Servicios a Planta · disponibilidad y stock de seguridad', color:'#B42318', corto:'Inventario Quimico', kpi:null, keys:[]},
   cep:{nom:'Control Estadístico de Procesos', sub:'Predicciones de variables organizadas por servicio y área', color:'#375C91', corto:'Control Estadístico', kpi:null, keys:[]},
   ptab:{nom:'PTAB · Aguas Blancas', sub:'Planta de tratamiento de aguas blancas · agua cruda y agua filtrada',
@@ -3226,6 +3227,7 @@ function pintarEncabezado(){
   const title=document.getElementById('view-title');
   const sub=document.getElementById('view-sub');
   if(title) title.textContent = SERVICIOS[activa].nom;
+  if(activa === 'guia'){if(sub)sub.textContent=SERVICIOS.guia.sub;return;}
 
   if(activa === 'ptab'){
     if(sub) sub.textContent = `${SERVICIOS.ptab.sub} · ${etiquetaFechaPtabr(PTABR_FECHA,true)} · 1er turno 06:00 am · 2do turno 06:00 pm`;
@@ -4529,8 +4531,8 @@ ir=function(id){
   document.querySelectorAll('.view').forEach(v=>{v.hidden=v.id!==('v-'+id);});
   const vf=document.getElementById('v-frio');if(vf)vf.hidden=true;
   pintarEncabezado();window.scrollTo(0,0);
-  if(id==='ptab')pintarPtabr();else if(id==='suav')pintarSuav();else if(id==='vapor')pintarVapor();else if(id==='aire')dashSalaRenderUnificado();else if(id==='ptar')pintarPTAR();else pintarGraficas();
-  pintarPrioridades();
+  if(id==='ptab')pintarPtabr();else if(id==='suav')pintarSuav();else if(id==='vapor')pintarVapor();else if(id==='aire')dashSalaRenderUnificado();else if(id==='ptar')pintarPTAR();else if(id!=='guia')pintarGraficas();
+  if(id!=='guia')pintarPrioridades();
 };
 
 // Diagnóstico claro si el /exec sigue apuntando a una versión anterior del backend.
