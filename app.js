@@ -5284,6 +5284,208 @@ setTimeout(()=>{try{dashSalaRenderUnificado();}catch(e){console.warn('Sala V8 ·
 
 
 /* =========================================================
+   SALA DE COMPRESORES · FORMATO NOVIEMBRE 2026
+   - Hoja1 con lecturas H/I/J/K (7AM/1PM/7PM/1AM).
+   - Cinco sistemas; cinco bombas del Enfriamiento UMA.
+   - Mantener compatibilidad con los formatos de impresión anteriores.
+   - Validar día, operadores, lecturas y rangos sin borrar histórico.
+   ========================================================= */
+const DASH_SALA_NUEVA_VERSION='V11-2026-11-06';
+
+function dashSalaNuevaCatalogo(){
+  const S=DASH_SALA_V4_SYSTEMS, defs=[];
+  const add=(system,area,equipo,variable,row,id,unidad='',rango='',min=null,max=null,naturaleza='numero')=>{
+    defs.push({id,area,equipo,variable,row,unidad,rango,criterio:rango||'Lectura operativa',
+      min,max,naturaleza,tipoDato:naturaleza==='estado'?'Texto':'Numérico',
+      slotMode:'timed',sistema:S[system]});
+  };
+  const viejo=(grupo,row,variable,extra)=>dashSalaV4Id(grupo,row,variable,extra);
+
+  // Sistema de Aire Comprimido
+  [
+    [10,'KAESER #1',11,'Corriente','230 V - 300 V',230,300],
+    [13,'KAESER #2',13,'Corriente','230 V - 300 V',230,300],
+    [16,'Ingersoll Rand #1',15,'Corriente','V',null,null],
+    [19,'Ingersoll Rand #2',17,'Corriente','V',null,null],
+    [22,'Atlas Copco #1',19,'Corriente','V',null,null],
+    [25,'Secador Kaeser #1',21,'Temperatura','< -5 °C',null,-5],
+    [28,'Secador Kaeser #2',23,'Temperatura','< -5 °C',null,-5]
+  ].forEach(([r,eq,old,third,range,mn,mx])=>{
+    add(0,'Compresores Aire',eq,'Operación',r,viejo('air',old,'Operación','operacion'),'','Ok/Mtto/Off',null,null,'estado');
+    add(0,'Compresores Aire',eq,'Presión',r+1,viejo('air',old,'Presión','timed'),'psi','100 - 105 psi',100,105);
+    add(0,'Compresores Aire',eq,third,r+2,'sala_v11_air_'+(r+2)+'_'+salaSlug(third)+'_timed',
+      third==='Temperatura'?'°C':'V',range,mn,mx);
+  });
+  ['Secador 1','Secador 2','Pulmon','Manifold'].forEach((v,i)=>
+    add(0,'Trampas de Aire','Trampas de Condensado',v,31+i,'sala_v11_air_'+(31+i)+'_'+salaSlug(v)+'_timed','','Ok/Mtto/Off',null,null,'estado'));
+  ['IR#1','IR#2','AC#1'].forEach((v,i)=>
+    add(0,'Compresores Aire','Filtros',v,35+i,'sala_v11_air_'+(35+i)+'_'+salaSlug(v)+'_timed','','Ok/Mtto/Off',null,null,'estado'));
+  add(0,'Compresores Aire','Red de aire','Presión del sistema',38,viejo('air',27,'Presión del sistema','timed'),'psi','100 - 105 psi',100,105);
+
+  // Refrigeración NH3 · Sala de Compresores
+  for(let i=0;i<6;i++){
+    const r=43+4*i,old=33+4*i,eq='Compresor de Amoniaco SABROE #'+(i+1);
+    add(1,'Compresores NH3',eq,'Presión de aspiración',r,'sala_v11_nh3_'+r+'_aspiracion_timed','°C/R','< -22,5 °C/R',null,-22.5);
+    add(1,'Compresores NH3',eq,'Capacidad',r+1,viejo('frio',old+1,'Capacidad','timed'),'%','0 - 100 %',0,100);
+    add(1,'Compresores NH3',eq,'Temperatura de aceite',r+2,viejo('frio',old+2,'Temperatura de aceite','timed'),'°C','< 60 °C',null,60);
+    add(1,'Compresores NH3',eq,'Corriente',r+3,viejo('frio',old+3,'Corriente','timed'),'V','V');
+  }
+  for(let i=0;i<6;i++){
+    const r=69+2*i,old=60+3*i,eq='CONDENSADOR EVAPORATIVO #'+(i+1);
+    add(1,'Condensador/Evaporativo',eq,'Nivel de agua',r,viejo('frio',old,'Nivel de agua','timed'),'%','0 - 100 %',0,100);
+    add(1,'Condensador/Evaporativo',eq,'Disponibilidad',r+1,viejo('frio',old+1,'Disponibilidad','timed'),'','Ok/Mtto/Off',null,null,'estado');
+  }
+
+  // Refrigeración NH3 · Agua Helada
+  for(let i=0;i<4;i++){
+    const r=85+3*i,old=81+i,eq='Banco de Hielo #'+(i+1);
+    add(2,'Banco de Hielo',eq,'Sol Ent NH3',r,viejo('frio',old,'Sol Ent NH3','p1'),'','Ok/Mtto/Off',null,null,'estado');
+    add(2,'Banco de Hielo',eq,'Sol Sal NH3',r+1,viejo('frio',old,'Sol Sal NH3','p2'),'','Ok/Mtto/Off',null,null,'estado');
+    add(2,'Banco de Hielo',eq,'Nivel Agua',r+2,viejo('frio',old,'Nivel Agua','p3'),'%','0 - 100 %',0,100);
+  }
+  [
+    [99,'UMAS Margarina','Chiller UMAs','Temperatura',87,'°C'],
+    [102,'Fraccionamiento','C. FRACCIONAMIENTO','Temperatura',90,'°C'],
+    [103,'Banco de Hielo','Formu. Mayonesa','Temperatura',93,'°C'],
+    [106,'Banco de Hielo','RET. Formu. Mayonesa','Temperatura',96,'°C'],
+    [107,'Banco de Hielo','Descarga Gandola Aceite','Temperatura',97,'°C'],
+    [110,'Banco de Hielo','Formu. Margarina','Temperatura',100,'°C']
+  ].forEach(([r,area,eq,v,old,unit])=>add(2,area,eq,v,r,viejo('frio',old,v,'timed'),unit,unit));
+  [
+    [100,'UMAS Margarina','Sist Bomb 1 · Chiller UMAs'],
+    [101,'UMAS Margarina','Sist Bomb 2 · Chiller UMAs'],
+    [104,'Banco de Hielo','Sist Bomb 1 · Formu. Mayonesa'],
+    [105,'Banco de Hielo','Sist Bomb 2 · Formu. Mayonesa'],
+    [108,'Banco de Hielo','Sist Bomb 1 · Descarga Gandola Aceite'],
+    [109,'Banco de Hielo','Sist Bomb 2 · Descarga Gandola Aceite'],
+    [111,'Banco de Hielo','Sist Bomb 1 · Formu. Margarina']
+  ].forEach(([r,area,eq])=>add(2,area,eq,'Presión',r,'sala_v11_frio_'+r+'_presion_bomba_timed','psi','psi'));
+
+  // Refrigeración NH3 · CAV Gigante
+  for(let i=0;i<2;i++){
+    const r=116+4*i,old=107+4*i,eq='Compresor NH3 SABROE #'+(i+1)+' Cava Gigante';
+    add(3,'Cava Gigante',eq,'Capacidad',r,viejo('frio',old,'Capacidad','timed'),'%','0 - 100 %',0,100);
+    add(3,'Cava Gigante',eq,'Presión de aspiración',r+1,'sala_v11_cava_'+(r+1)+'_aspiracion_timed','°C/R','°C/R');
+    add(3,'Cava Gigante',eq,'Nivel de aceite',r+2,viejo('frio',old+2,'Nivel de aceite','timed'),'%','0 - 100 %',0,100);
+    add(3,'Cava Gigante',eq+' · Ref. Cabezal','Corriente',r+3,viejo('frio',old+3,'Corriente','timed'),'V','V');
+  }
+  add(3,'Cava Gigante','CONDENSADOR EVAPORATIVO CG','Nivel de agua',124,viejo('frio',115,'Nivel de agua','timed'),'%','0 - 100 %',0,100);
+  add(3,'Cava Gigante','CONDENSADOR EVAPORATIVO CG','Disponibilidad',125,viejo('frio',116,'Disponibilidad','timed'),'','Ok/Mtto/Off',null,null,'estado');
+  for(let i=0;i<2;i++){
+    const r=126+2*i,old=118+2*i,eq='Difusor #'+(i+1)+' CAVA GIGANTE';
+    add(3,'Cava Gigante',eq,'Presión tanque',r,viejo('frio',old,'Presión tanque','timed'),'psi','psi');
+    add(3,'Cava Gigante',eq,'Motores operación',r+1,viejo('frio',old+1,'Motores operación','timed'),'','0 - 4',0,4);
+  }
+  add(3,'Cava Gigante','Temperatura Cava G','Temperatura',130,viejo('frio',122,'Temperatura','timed'),'°C','°C');
+  [
+    [131,'Cava 2',124,'temp1'],
+    [132,'Cava de Queso',125,'temp1'],
+    [133,'Cava 5',126,'temp1'],
+    [134,'Cava de Materia Prima',127,'temp1'],
+    [135,'Cava de Tomate',124,'temp2'],
+    [136,'Cava de Yema',125,'temp2'],
+    [137,'Cava de Encimas',126,'temp2']
+  ].forEach(([r,eq,old,extra])=>add(3,'Cavas',eq,'Temperatura',r,viejo('frio',old,'Temperatura',extra),'°C','°C'));
+
+  // Enfriamiento UMA: reutilizar folios/IDs de la versión V8 y actualizar filas.
+  dashUmaDefsV8().forEach((d,i)=>{
+    const r=142+i,esTemp=d.variable==='Temperatura';
+    add(4,d.area,d.equipo,d.variable,r,d.id,d.unidad,d.rango,esTemp?12:40,esTemp?20:120);
+  });
+  return defs;
+}
+
+function dashSalaNuevaNumero(raw,def){
+  if(typeof raw==='number'&&Number.isFinite(raw))return raw;
+  const promedio=dashPromedioLecturas(raw);if(promedio!==null)return promedio;
+  let txt=dashCellText(raw).replace(/\s*(?:°C\/R|°C|psi|PSI|%|V)\s*$/,'').trim();
+  if(!/^[+-]?\d+(?:[.,]\d+)?$/.test(txt))return null;
+  if(/^[+-]?\d+\.\d{3}$/.test(txt)){
+    const decimal=Number(txt),miles=ptarNumeroLocal(txt);
+    if(def.max!==null&&decimal<=def.max&&miles>def.max)return decimal;
+    if(def.min!==null&&decimal>=def.min&&miles<def.min)return decimal;
+    // Los instrumentos de esta planilla emplean punto o coma decimal.
+    return decimal;
+  }
+  return ptarNumeroLocal(txt);
+}
+
+const _leerSalaCompresoresAnteriorV11=leerSalaCompresores;
+leerSalaCompresores=async function(buffer){
+  const m=await dashLeerMatrizHoja(buffer,'Hoja1');
+  const esNueva=/enfriamiento\s+uma/i.test(dashCellText(m[138]&&m[138][1]))&&
+    /^7\s*am$/i.test(dashCellText(m[8]&&m[8][7]));
+  if(!esNueva)return _leerSalaCompresoresAnteriorV11(buffer);
+  const fecha=dashIsoDateStrict(m[1]&&m[1][10]);
+  if(!fecha)throw new Error('Fecha obligatoria: complete K2 en formato dd/mm/aaaa antes de subir la planilla.');
+  const opDia=salaFirst(m,5,[4,5,6]),opNoche=salaFirst(m,5,[9,10,11]);
+  const slots=[
+    {col:8,turno:'07:00',orig:'7AM',operador:opDia,tag:'0700'},
+    {col:9,turno:'13:00',orig:'1PM',operador:opDia,tag:'1300'},
+    {col:10,turno:'19:00',orig:'7PM',operador:opNoche,tag:'1900'},
+    {col:11,turno:'01:00',orig:'1AM',operador:opNoche,tag:'0100'}
+  ];
+  const observaciones=[151,152,153,154,155,156,157,158]
+    .map(i=>dashCellText(m[i]&&m[i][1]))
+    .find(v=>v&&!/^Observaciones\s*:?$/i.test(v))||'';
+  const catalogo=dashSalaNuevaCatalogo(),rows=[],errores=[];
+  let requiereDia=false,requiereNoche=false;
+  catalogo.forEach(def=>{
+    slots.forEach(sl=>{
+      const raw=m[def.row-1]&&m[def.row-1][sl.col-1];
+      if(!dashCellHas(raw))return;
+      if(sl.col<=9)requiereDia=true;else requiereNoche=true;
+      const texto=dashCellText(raw);
+      let n=null,st;
+      if(def.naturaleza==='estado'){
+        st=salaStatus(texto);
+      }else{
+        n=dashSalaNuevaNumero(raw,def);
+        if(n===null){
+          errores.push('Celda '+String.fromCharCode(64+sl.col)+def.row+': se esperaba un valor numérico; encontrado '+texto);
+          return;
+        }
+        const mediciones=dashLecturasMultiples(raw);
+        const valores=mediciones.length?mediciones:[n];
+        const fuera=valores.some(x=>(def.min!==null&&x<def.min)||(def.max!==null&&x>def.max));
+        st=(def.min!==null||def.max!==null)
+          ?{indicador:fuera?'⛔':'✅',estado:fuera?'Fuera de norma':'Operativo / normal reportado'}
+          :{indicador:'',estado:'Sin indicador'};
+      }
+      rows.push({
+        fecha,confianzaFecha:'Fecha ingresada por operador',turno:sl.turno,turnoOriginal:sl.orig,
+        operador:sl.operador,reporteId:'SALA-'+fecha.replace(/-/g,'')+'-'+sl.tag,
+        area:def.area,equipo:def.equipo,variable:def.variable,valor:n,
+        texto:def.naturaleza==='estado'?texto:(dashTextoLecturas(raw)||''),
+        unidad:def.unidad,indicador:st.indicador,estado:st.estado,observacion:observaciones,
+        linea:'Sala de Compresores · Plantilla V11 · fila '+def.row,id:def.id,
+        tipoDato:def.tipoDato,rango:def.rango,criterio:def.criterio,sistema:def.sistema
+      });
+    });
+  });
+  if(errores.length)throw new Error('Revise los datos de la planilla: '+errores.slice(0,8).join(' | ')+(errores.length>8?' ...':''));
+  if(!rows.length)throw new Error('La planilla de Compresores no contiene ninguna lectura para cargar.');
+  if(requiereDia&&!opDia)throw new Error('Complete OPERADOR DIURNO en D5 antes de subir las lecturas de 7AM/1PM.');
+  if(requiereNoche&&!opNoche)throw new Error('Complete OPERADOR NOCTURNO en I5 antes de subir las lecturas de 7PM/1AM.');
+  return {rows,catalogo,fecha};
+};
+
+// En días de la plantilla V11 mostrar únicamente su catálogo (sin filas
+// obsoletas de los formatos previos); conservar datos anteriores en el histórico.
+const _dashSalaDefsAnteriorV11=dashSalaDefsV4;
+dashSalaDefsV4=function(sistema,filas){
+  const fecha=dashSalaFechaActual(),nueva=dashSalaRowsAll().some(r=>
+    r.fecha===fecha&&/Plantilla V11/.test(String(r.linea||'')));
+  if(!nueva)return _dashSalaDefsAnteriorV11(sistema,filas);
+  const mapa=new Map(dashSalaNuevaCatalogo().filter(d=>d.sistema===sistema).map(d=>[d.id,Object.assign({},d)]));
+  (filas||[]).forEach(r=>{if(!mapa.has(r.id))mapa.set(r.id,{id:r.id,area:r.area,
+    equipo:r.equipo,variable:r.variable,unidad:r.unidad||'',tipoDato:r.tipoDato||'',
+    rango:r.rango||'',criterio:r.criterio||'',sistema:dashSalaSistema(r)});});
+  return [...mapa.values()];
+};
+
+
+/* =========================================================
    V10.2 · INVENTARIO QUÍMICO + GRÁFICAS + CARGA EXCEL · 27-09-2026
    Fuente normal: Google Drive / Base_Maestra_Dashboard / INVENTARIO_QUIMICO
    Respaldo: window.INVENTARIO_QUIMICO_FALLBACK
