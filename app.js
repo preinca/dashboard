@@ -5429,12 +5429,10 @@ leerSalaCompresores=async function(buffer){
     .map(i=>dashCellText(m[i]&&m[i][1]))
     .find(v=>v&&!/^Observaciones\s*:?$/i.test(v))||'';
   const catalogo=dashSalaNuevaCatalogo(),rows=[],errores=[];
-  let requiereDia=false,requiereNoche=false;
   catalogo.forEach(def=>{
     slots.forEach(sl=>{
       const raw=m[def.row-1]&&m[def.row-1][sl.col-1];
       if(!dashCellHas(raw))return;
-      if(sl.col<=9)requiereDia=true;else requiereNoche=true;
       const texto=dashCellText(raw);
       let n=null,st;
       if(def.naturaleza==='estado'){
@@ -5465,8 +5463,7 @@ leerSalaCompresores=async function(buffer){
   });
   if(errores.length)throw new Error('Revise los datos de la planilla: '+errores.slice(0,8).join(' | ')+(errores.length>8?' ...':''));
   if(!rows.length)throw new Error('La planilla de Compresores no contiene ninguna lectura para cargar.');
-  if(requiereDia&&!opDia)throw new Error('Complete OPERADOR DIURNO en D5 antes de subir las lecturas de 7AM/1PM.');
-  if(requiereNoche&&!opNoche)throw new Error('Complete OPERADOR NOCTURNO en I5 antes de subir las lecturas de 7PM/1AM.');
+  // Los nombres de operadores son opcionales. Fecha K2 y lecturas siguen siendo obligatorias.
   return {rows,catalogo,fecha};
 };
 
