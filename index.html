@@ -75,10 +75,6 @@
       <button class="tab" role="tab" id="t-diagramas" aria-controls="v-diagramas" aria-selected="false" data-tab="diagramas" style="--k:#375C91">
         <span class="dot"></span>Diagramas de Procesos<span class="st idle" data-tabst="diagramas"></span>
       </button>
-      <div class="nav-h">Lista de Verificados</div>
-      <button class="tab" role="tab" id="t-verificados" aria-controls="v-verificados" aria-selected="false" data-tab="verificados" style="--k:#1E63C8">
-        <span class="dot"></span>Checklist Vapor y Condensado<span class="st idle" data-tabst="verificados"></span>
-      </button>
       <div class="nav-h">Resumen</div>
       <button class="tab" role="tab" id="t-resumen" aria-controls="v-resumen" aria-selected="true" data-tab="resumen" style="--k:#131A20">
         <span class="dot"></span>Resumen de planta<span class="st" data-tabst="resumen"></span>
@@ -619,95 +615,6 @@
       </div>
     </section>
 
-    <!-- ======= LISTA DE VERIFICADOS · CHECKLIST VAPOR Y CONDENSADO ======= -->
-    <section class="view verif-theme" id="v-verificados" role="tabpanel" aria-labelledby="t-verificados" hidden>
-      <div class="formato-descarga"><a class="formato-descarga-btn" href="https://drive.google.com/uc?export=download&amp;id=1VNS-xaWU5S11xK4jwd37wh-7jAYgqWLG" target="_blank" rel="noopener noreferrer" aria-label="Descargar formato Excel verificados">⬇ Descargar Formato Checklist Vapor y Condensado</a></div>
-      <div class="card verif-intro mb">
-        <div class="card-b verif-intro-inner">
-          <div>
-            <span class="verif-eyebrow">Lista de Verificados</span>
-            <h3>Checklist de vapor y condensado</h3>
-            <p>Seguimiento de Queso, Tomate, Mayonesa, Manifold y Margarina. Los registros se cargan desde la planilla del operador y se conservan de forma histórica en Google Drive.</p>
-          </div>
-          <div class="verif-actions">
-            <label class="verif-action-btn primary" for="verif-excel-input">Cargar checklist Excel</label>
-            <input id="verif-excel-input" type="file" accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" hidden>
-          </div>
-        </div>
-      </div>
-
-      <div class="grid g-kpi verif-kpis mb">
-        <div class="kpi"><div class="lbl">Registros visibles</div><div class="v" id="verif-kpi-total">0</div><div class="rng">Puntos/equipos verificados</div></div>
-        <div class="kpi"><div class="lbl">Última inspección</div><div class="v verif-kpi-date" id="verif-kpi-latest">—</div><div class="rng" id="verif-kpi-latest-meta">Sin información</div></div>
-        <div class="kpi"><div class="lbl">Desviaciones</div><div class="v" id="verif-kpi-issues">0</div><div class="rng">Puntos/equipos con condición no OK</div></div>
-        <div class="kpi"><div class="lbl">Avisos B1</div><div class="v" id="verif-kpi-b1">0</div><div class="rng">Registros con aviso asociado</div></div>
-      </div>
-
-      <div class="card mb">
-        <div class="card-h verif-filter-head">
-          <div>
-            <h3>Filtros de verificación</h3>
-            <span class="note">Combine área, fecha, turno y estado para revisar el histórico.</span>
-          </div>
-          <button type="button" class="verif-clear-btn" id="verif-clear">Limpiar filtros</button>
-        </div>
-        <div class="card-b">
-          <div class="verif-filters">
-            <label>Área<select id="verif-area"><option value="__all__">Todas las áreas</option></select></label>
-            <label>Fecha<select id="verif-date"><option value="__all__">Todas las fechas</option></select></label>
-            <label>Turno<select id="verif-turno"><option value="__all__">Todos los turnos</option></select></label>
-            <label>Estado<select id="verif-status"><option value="__all__">Todos los estados</option><option value="issue">Con desviación</option><option value="ok">Verificado</option><option value="pending">Pendiente</option></select></label>
-            <label class="verif-search-label">Buscar<input id="verif-search" type="search" placeholder="Punto, supervisor, operador, aviso u observación"></label>
-          </div>
-        </div>
-      </div>
-
-      <div class="verif-area-grid mb" id="verif-area-grid"></div>
-
-      <div class="card verif-reference-card mb" id="verif-reference">
-        <div class="card-h verif-reference-head">
-          <div>
-            <span class="verif-eyebrow">Referencia visual</span>
-            <h3>Ubicación del punto a verificar</h3>
-            <span class="note">Fotografías extraídas de los diagramas de condensado para facilitar la identificación en campo.</span>
-          </div>
-          <div class="verif-ref-controls">
-            <label>Área<select id="verif-ref-area" aria-label="Área de referencia visual"></select></label>
-            <label>Punto / equipo<select id="verif-ref-point" aria-label="Punto o equipo de referencia visual"></select></label>
-            <label>Vista<select id="verif-ref-mode" aria-label="Modo de visualización de fotografías"><option value="point">Punto / equipo</option><option value="area">Todas las fotos del área</option><option value="hide">Ocultar Referencias</option></select></label>
-          </div>
-        </div>
-        <div class="card-b" id="verif-ref-view"></div>
-      </div>
-
-      <div class="card">
-        <div class="card-h verif-history-head">
-          <div>
-            <h3>Histórico de verificaciones</h3>
-            <span class="note" id="verif-count">0 registros</span>
-          </div>
-          <div class="verif-history-nav" id="verif-history-nav" aria-label="Navegación del histórico">
-            <button type="button" class="verif-page-btn" id="verif-page-prev" aria-label="Mostrar 10 registros anteriores">← Anteriores</button>
-            <label class="verif-page-select-label">Página
-              <select id="verif-page-select" aria-label="Seleccionar página del histórico"></select>
-            </label>
-            <span class="verif-page-meta" id="verif-page-meta">0–0 de 0</span>
-            <button type="button" class="verif-page-btn" id="verif-page-next" aria-label="Mostrar 10 registros siguientes">Siguientes →</button>
-          </div>
-        </div>
-        <div class="card-b verif-table-wrap">
-          <table class="tbl verif-table">
-            <thead><tr>
-              <th>Fecha</th><th>Turno</th><th>Área</th><th>Punto / Equipo</th>
-              <th>Condicion Fuga</th><th>By pass</th><th>Manómetros</th><th>Aislamiento</th><th>Seguridad</th>
-              <th>#Aviso B1</th><th>Observación</th><th>Supervisor</th><th>Operador</th>
-            </tr></thead>
-            <tbody id="verif-table-body"></tbody>
-          </table>
-        </div>
-      </div>
-    </section>
-
     <!-- ======= MEJORAS DE SERVICIOS ======= -->
     <section class="view" id="v-sugerencias" role="tabpanel" aria-labelledby="t-sugerencias" hidden>
       <div class="card mb">
@@ -791,16 +698,6 @@
   </div>
 </div>
 
-<div class="verif-photo-modal" id="verif-photo-modal" hidden role="dialog" aria-modal="true" aria-labelledby="verif-photo-modal-title">
-  <div class="verif-photo-modal-dialog">
-    <div class="verif-photo-modal-head">
-      <strong id="verif-photo-modal-title">Referencia visual</strong>
-      <button type="button" class="verif-photo-modal-close" data-verif-photo-close aria-label="Cerrar imagen">×</button>
-    </div>
-    <div class="verif-photo-modal-body"><img id="verif-photo-modal-img" alt="Referencia visual"></div>
-  </div>
-</div>
-
 <!-- Botón fijo: fuera de .top-r porque .top-r está oculto por diseño -->
 <div id="drive-refresh-floating" aria-label="Sincronización Google Drive">
   <button type="button" id="drive-refresh-btn" class="drive-refresh-btn" title="Volver a leer todos los servicios desde Google Drive">
@@ -816,7 +713,6 @@
 <script src="vapor_fallback.js?v=20260927-v10inv"></script>
 <script src="suav_fallback.js?v=20260927-v10inv"></script>
 <script src="inventario_fallback.js?v=20261002-v11-9-logos"></script>
-<script src="verificados_fallback.js?v=20261002-v11-9-logos"></script>
 <script src="config.js?v=20261002-v11-9-logos"></script>
 <script src="app.js?v=20261106-guia-carga-planillas"></script>
 <script src="ptab_ph_ml_model.js?v=20261016-ml1"></script>
