@@ -5297,6 +5297,9 @@ const DASH_SALA_TRASIEGO_SYSTEM='Bomba de Trasiego NH3 Líquido';
 // Añadir el nuevo sistema sin modificar los índices históricos (0-4).
 if(!DASH_SALA_V4_SYSTEMS.includes(DASH_SALA_TRASIEGO_SYSTEM))DASH_SALA_V4_SYSTEMS.push(DASH_SALA_TRASIEGO_SYSTEM);
 if(!DASH_SALA_SYSTEMS.includes(DASH_SALA_TRASIEGO_SYSTEM))DASH_SALA_SYSTEMS.push(DASH_SALA_TRASIEGO_SYSTEM);
+// La normalización y la carga desde Drive filtran por áreas permitidas.
+// Sin este registro, las nuevas bombas se guardarían pero no se mostrarían.
+if(!WA_CFG.frio.areasPermitidas.includes('Trasiego NH3 Líquido'))WA_CFG.frio.areasPermitidas.push('Trasiego NH3 Líquido');
 const _dashSalaSistemaPorAreaAntesTrasiego=dashSalaSistemaPorArea;
 dashSalaSistemaPorArea=function(area){
   if(dashCellText(area)==='Trasiego NH3 Líquido')return DASH_SALA_TRASIEGO_SYSTEM;
