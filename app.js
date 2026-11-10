@@ -5292,9 +5292,18 @@ setTimeout(()=>{try{dashSalaRenderUnificado();}catch(e){console.warn('Sala V8 ·
    - Mantener compatibilidad con los formatos de impresión anteriores.
    - Validar día, operadores, lecturas y rangos sin borrar histórico.
    ========================================================= */
-const DASH_SALA_NUEVA_VERSION='V11-2026-11-06';
+const DASH_SALA_NUEVA_VERSION='V12-2026-11-10';
+const DASH_SALA_TRASIEGO_SYSTEM='Bomba de Trasiego NH3 Líquido';
+// Añadir el nuevo sistema sin modificar los índices históricos (0-4).
+if(!DASH_SALA_V4_SYSTEMS.includes(DASH_SALA_TRASIEGO_SYSTEM))DASH_SALA_V4_SYSTEMS.push(DASH_SALA_TRASIEGO_SYSTEM);
+if(!DASH_SALA_SYSTEMS.includes(DASH_SALA_TRASIEGO_SYSTEM))DASH_SALA_SYSTEMS.push(DASH_SALA_TRASIEGO_SYSTEM);
+const _dashSalaSistemaPorAreaAntesTrasiego=dashSalaSistemaPorArea;
+dashSalaSistemaPorArea=function(area){
+  if(dashCellText(area)==='Trasiego NH3 Líquido')return DASH_SALA_TRASIEGO_SYSTEM;
+  return _dashSalaSistemaPorAreaAntesTrasiego(area);
+};
 
-function dashSalaNuevaCatalogo(){
+function dashSalaNuevaCatalogo(conTrasiego=false){
   const S=DASH_SALA_V4_SYSTEMS, defs=[];
   const add=(system,area,equipo,variable,row,id,unidad='',rango='',min=null,max=null,naturaleza='numero')=>{
     defs.push({id,area,equipo,variable,row,unidad,rango,criterio:rango||'Lectura operativa',
@@ -5394,6 +5403,17 @@ function dashSalaNuevaCatalogo(){
     const r=142+i,esTemp=d.variable==='Temperatura';
     add(4,d.area,d.equipo,d.variable,r,d.id,d.unidad,d.rango,esTemp?12:40,esTemp?20:120);
   });
+  if(conTrasiego){
+    // La nueva sección ocupa las filas 113-125 y desplaza 13 filas
+    // todos los equipos originales de Cava Gigante y Enfriamiento UMA.
+    defs.forEach(d=>{if(d.row>=116)d.row+=13;});
+    for(let i=0;i<3;i++){
+      const row=116+i*3,bomba='Bomba de Trasiego NH3 #'+(i+1),id='sala_v12_trasiego_bomba'+(i+1);
+      add(5,'Trasiego NH3 Líquido',bomba,'Nivel de aceite',row,id+'_nivel_aceite_timed','%','0 - 100 %',0,100);
+      add(5,'Trasiego NH3 Líquido',bomba,'Disponibilidad',row+1,id+'_disponibilidad_timed','','Ok/Mtto/Off',null,null,'estado');
+      add(5,'Trasiego NH3 Líquido',bomba,'Amperaje',row+2,id+'_amperaje_timed','A','A');
+    }
+  }
   return defs;
 }
 
@@ -5415,7 +5435,9 @@ function dashSalaNuevaNumero(raw,def){
 const _leerSalaCompresoresAnteriorV11=leerSalaCompresores;
 leerSalaCompresores=async function(buffer){
   const m=await dashLeerMatrizHoja(buffer,'Hoja1');
-  const esNueva=/enfriamiento\s+uma/i.test(dashCellText(m[138]&&m[138][1]))&&
+  const conTrasiego=/bomba\s+de\s+trasiego\s+nh3/i.test(dashCellText(m[112]&&m[112][1]));
+  const umaSectionRow=conTrasiego?151:138;
+  const esNueva=/enfriamiento\s+uma/i.test(dashCellText(m[umaSectionRow]&&m[umaSectionRow][1]))&&
     /^7\s*am$/i.test(dashCellText(m[8]&&m[8][7]));
   if(!esNueva)return _leerSalaCompresoresAnteriorV11(buffer);
   const fecha=dashIsoDateStrict(m[1]&&m[1][10]);
@@ -5427,10 +5449,11 @@ leerSalaCompresores=async function(buffer){
     {col:10,turno:'19:00',orig:'7PM',operador:opNoche,tag:'1900'},
     {col:11,turno:'01:00',orig:'1AM',operador:opNoche,tag:'0100'}
   ];
-  const observaciones=[151,152,153,154,155,156,157,158]
+  const obsStart=conTrasiego?164:151;
+  const observaciones=Array.from({length:8},(_,i)=>obsStart+i)
     .map(i=>dashCellText(m[i]&&m[i][1]))
     .find(v=>v&&!/^Observaciones\s*:?$/i.test(v))||'';
-  const catalogo=dashSalaNuevaCatalogo(),rows=[],errores=[];
+  const catalogo=dashSalaNuevaCatalogo(conTrasiego),rows=[],errores=[];
   catalogo.forEach(def=>{
     slots.forEach(sl=>{
       const raw=m[def.row-1]&&m[def.row-1][sl.col-1];
@@ -5458,7 +5481,7 @@ leerSalaCompresores=async function(buffer){
         area:def.area,equipo:def.equipo,variable:def.variable,valor:n,
         texto:def.naturaleza==='estado'?texto:(dashTextoLecturas(raw)||''),
         unidad:def.unidad,indicador:st.indicador,estado:st.estado,observacion:observaciones,
-        linea:'Sala de Compresores · Plantilla V11 · fila '+def.row,id:def.id,
+        linea:'Sala de Compresores · Plantilla '+(conTrasiego?'V12':'V11')+' · fila '+def.row,id:def.id,
         tipoDato:def.tipoDato,rango:def.rango,criterio:def.criterio,sistema:def.sistema
       });
     });
@@ -5473,10 +5496,11 @@ leerSalaCompresores=async function(buffer){
 // obsoletas de los formatos previos); conservar datos anteriores en el histórico.
 const _dashSalaDefsAnteriorV11=dashSalaDefsV4;
 dashSalaDefsV4=function(sistema,filas){
-  const fecha=dashSalaFechaActual(),nueva=dashSalaRowsAll().some(r=>
-    r.fecha===fecha&&/Plantilla V11/.test(String(r.linea||'')));
+  const fecha=dashSalaFechaActual(),day=dashSalaRowsAll().filter(r=>r.fecha===fecha);
+  const conTrasiego=day.some(r=>/Plantilla V12/.test(String(r.linea||'')));
+  const nueva=conTrasiego||day.some(r=>/Plantilla V11/.test(String(r.linea||'')));
   if(!nueva)return _dashSalaDefsAnteriorV11(sistema,filas);
-  const mapa=new Map(dashSalaNuevaCatalogo().filter(d=>d.sistema===sistema).map(d=>[d.id,Object.assign({},d)]));
+  const mapa=new Map(dashSalaNuevaCatalogo(conTrasiego).filter(d=>d.sistema===sistema).map(d=>[d.id,Object.assign({},d)]));
   (filas||[]).forEach(r=>{if(!mapa.has(r.id))mapa.set(r.id,{id:r.id,area:r.area,
     equipo:r.equipo,variable:r.variable,unidad:r.unidad||'',tipoDato:r.tipoDato||'',
     rango:r.rango||'',criterio:r.criterio||'',sistema:dashSalaSistema(r)});});
